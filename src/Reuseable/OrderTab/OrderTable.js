@@ -69,10 +69,10 @@ function Row({ order, type }) {
             size="small"
             onClick={() => setOpen(!open)}
             sx={{
-              background: '#9F3239',
+              background: '#F19E38',
               color: '#fff',
               transition: '1s',
-              '&:hover': { background: '#9F3239', color: '#fff', transition: '1s' },
+              '&:hover': { background: '#F19E38', color: '#fff', transition: '1s' },
             }}
           >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
@@ -110,7 +110,7 @@ function Row({ order, type }) {
                 ) : type === 'inProgress' ? (
                   <Button
                     variant="contained"
-                    sx={{ backgroundColor: '#9F3239', color: '#fff' }}
+                    sx={{ backgroundColor: '#F19E38', color: '#fff' }}
                     onClick={handleDelivery}
                   >
                     Delivered
@@ -134,29 +134,29 @@ export default function OrderTable({ orders, type }) {
       <Table aria-label="collapsible table" sx={{ minWidth: 1000 }}>
         <TableHead>
           <TableRow>
-            <TableCell sx={{ color: '#9F3239' }}>Order ID</TableCell>
-            <TableCell sx={{ color: '#9F3239' }} align="left">
+            <TableCell sx={{ color: '#F19E38' }}>Order ID</TableCell>
+            <TableCell sx={{ color: '#F19E38' }} align="left">
               User Name
             </TableCell>
-            <TableCell sx={{ color: '#9F3239' }} align="left">
+            <TableCell sx={{ color: '#F19E38' }} align="left">
               Phone
             </TableCell>
-            <TableCell sx={{ color: '#9F3239' }} align="left">
+            <TableCell sx={{ color: '#F19E38' }} align="left">
               Address
             </TableCell>
-            <TableCell sx={{ color: '#9F3239' }} align="left">
+            <TableCell sx={{ color: '#F19E38' }} align="left">
               In Time
             </TableCell>
-            <TableCell sx={{ color: '#9F3239' }} align="left">
+            <TableCell sx={{ color: '#F19E38' }} align="left">
               Category
             </TableCell>
-            <TableCell sx={{ color: '#9F3239' }} align="left">
+            <TableCell sx={{ color: '#F19E38' }} align="left">
               Qty
             </TableCell>
-            <TableCell sx={{ color: '#9F3239' }} align="left">
+            <TableCell sx={{ color: '#F19E38' }} align="left">
               Total Price
             </TableCell>
-            <TableCell sx={{ color: '#9F3239' }} align="left">
+            <TableCell sx={{ color: '#F19E38' }} align="left">
               Status
             </TableCell>
             <TableCell />

@@ -302,13 +302,13 @@ export default function Products() {
         <Button
           onClick={handleOpen}
           sx={{
-            background: ' #9F3239',
+            background: ' #F19E38',
             color: '#fff',
             transition: '0.3s',
             '&: hover': {
               background: '#fff',
-              color: '#9F3239',
-              border: '1px solid #9F3239',
+              color: '#F19E38',
+              border: '1px solid #F19E38',
             },
           }}
           variant="contained"
