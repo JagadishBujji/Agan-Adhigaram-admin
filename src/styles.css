@@ -1,0 +1,70 @@
+.css-v475nq-MuiButtonBase-root-MuiListItemButton-root.active {
+  background: #9f3239;
+  color: #fff;
+  transition: 1s;
+}
+
+.css-mpr9kc-MuiPaper-root-MuiDrawer-paper {
+  width: 230px;
+}
+
+.css-1y6sui9 {
+  width: 230px;
+}
+
+.css-1puh3cy-MuiPaper-root-MuiAppBar-root {
+  width: calc(100% - 0px);
+}
+
+.css-1a52kpd {
+  border-bottom: none;
+  border-color: none;
+}
+
+/* .css-wdsdfe-MuiButtonBase-root-MuiTab-root.Mui-selected {
+  font-weight: 700;
+  background: #9F3239;
+  color: #fff;
+  outline: none;
+  border-radius: 5px;
+  font-family: sans-serif;
+  font-size: 16px;
+  border-bottom: none;
+} */
+
+.css-6d3pg0-MuiTabs-indicator {
+  display: none;
+}
+
+.css-1p30j7e {
+  display: none;
+}
+
+body::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+body::-webkit-scrollbar-track {
+  background: #fff;
+  border-radius: 5px;
+}
+
+/* Handle */
+body::-webkit-scrollbar-thumb {
+  background: #F19E38;
+  border-radius: 10px;
+}
+
+.css-m0wteu-MuiButtonBase-root-MuiButton-root:hover {
+  background: none;
+}
+
+.css-1tfylnl-MuiToolbar-root {
+  /* min-height: 50px; */
+  padding: 0px 40px;
+}
+
+/* .css-1byr0tz {
+  padding-top: 50px;
+} */

@@ -1,0 +1,14 @@
+.categoryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+}
+.categoryBtn {
+  background-color: #F19E38;
+  color: #fff;
+}
+.categoryBtn:hover {
+  background-color: #F19E38;
+  color: #fff;
+}

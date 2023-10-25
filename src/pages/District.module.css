@@ -1,0 +1,15 @@
+.districtHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.districtBtn{
+  background-color: #9F3239;
+  color: #fff;
+  box-shadow: none;
+}
+.districtBtn:hover{
+  background-color: #9F3239;
+  color: #fff;
+  box-shadow: none;
+}

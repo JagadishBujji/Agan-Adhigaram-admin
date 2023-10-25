@@ -1,0 +1,49 @@
+.minStock {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.productCoverImgBtn {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.productBtn {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.productBtns {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px;
+}
+.productSaveBtn {
+  background-color: #9F3239;
+  color: #fff;
+  margin-right: 5px;
+}
+.productSaveBtn:hover {
+  background-color: #9F3239;
+  color: #fff;
+}
+.productCancelBtn {
+  border: 1px solid #9F3239;
+  color: #9F3239;
+}
+.productCancelBtn:hover {
+  border: 1px solid #9F3239;
+  color: #9F3239;
+}
+
+.upload {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.uploadImage {
+  width: 50%;
+  margin-top: 20px;
+}
