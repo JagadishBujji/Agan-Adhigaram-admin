@@ -16,11 +16,11 @@ const navConfig = [
     path: '/dashboard/categories',
     icon: icon('ic_cart'),
   },
-  {
-    title: 'orders',
-    path: '/dashboard/orders',
-    icon: icon('ic_user'),
-  },
+  // {
+  //   title: 'orders',
+  //   path: '/dashboard/orders',
+  //   icon: icon('ic_user'),
+  // },
   {
     title: 'Order History',
     path: '/dashboard/order-histroy',

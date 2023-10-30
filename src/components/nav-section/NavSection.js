@@ -43,17 +43,17 @@ function NavItem({ item }) {
           fontWeight: 'fontWeightBold',
           '&:focus-within': {
             background: '#F19E38',
-            color: '#000',
+            color: '#fff',
             // transition: '1s',
           },
           '&:target': {
             background: '#F19E38',
-            color: '#000',
+            color: '#fff',
             // transition: '1s',
           },
           '&:focus-visible': {
             background: '#F19E38',
-            color: '#000',
+            color: '#fff',
             // transition: '1s',
           },
         },

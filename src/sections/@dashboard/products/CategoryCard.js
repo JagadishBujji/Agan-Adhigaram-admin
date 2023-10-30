@@ -42,7 +42,7 @@ export default function CategoryCard({ category, setShowModal }) {
       // }}
     >
       <Box sx={{ pt: '100%', position: 'relative' }}>
-        <Label
+        {/* <Label
           variant="filled"
           // color={(status === 'sale' && 'error') || 'info'}
           color={'info'}
@@ -55,36 +55,34 @@ export default function CategoryCard({ category, setShowModal }) {
           }}
         >
           Order No: {category.orderNo}
-        </Label>
+        </Label> */}
         <StyledProductImg alt={name} src={category.imgUrl} />
       </Box>
 
       <Stack spacing={2} sx={{ p: 3 }}>
         <Link color="inherit" underline="hover">
+          <Typography className={classes.humorous} variant="subtitle2" noWrap>
+            Humorous
+          </Typography>
           <div className={classes.cardHeader}>
             <Typography variant="subtitle2" noWrap>
-              {name}
+              Vadai Pochae
             </Typography>
             <MenuIcon item={category} editItem={() => setShowModal(category)} type="category" />
           </div>
+
+          <Typography className={classes.namecard} variant="subtitle2" noWrap>
+            Ramya - Sethuram
+          </Typography>
         </Link>
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Stack direction="row" alignItems="center">
           {/* <ColorPreview colors={colors} /> */}
           <Typography variant="subtitle1">
-            <Typography
-              component="span"
-              variant="body1"
-              sx={{
-                color: 'text.disabled',
-                // textDecoration: 'line-through',
-              }}
-            >
-              {/* {priceSale && fCurrency(priceSale)} */}Delivery Msg:
-            </Typography>
-            &nbsp;
-            {/* {fCurrency(price)} */}
-            {category.deliveryMsg}
+            ₹ 499<span className={classes.stricksamount}>₹ 599</span>
           </Typography>
+        </Stack>
+        <Stack direction="row" alignItems="center">
+          Stock: 10
         </Stack>
       </Stack>
     </Card>

@@ -6,11 +6,11 @@ import { LoadingButton } from '@mui/lab';
 // components
 import Iconify from '../../../components/iconify';
 import { RecaptchaVerifier, getAuth, signInWithEmailAndPassword, signInWithPhoneNumber } from 'firebase/auth';
-import classes from './LoginForm.module.css';
+import classes from './RegisterForm.module.css';
 
 // ----------------------------------------------------------------------
 
-export default function LoginForm() {
+export default function RegisterForm() {
   const navigate = useNavigate();
   const [creds, setCreds] = useState({
     email: '',
@@ -48,6 +48,8 @@ export default function LoginForm() {
   return (
     <>
       <Stack spacing={3}>
+        <TextField name="name" label="Name" type="text" />
+        <TextField name="Phone " label="Phone Number" type="tel" />
         <TextField name="email" label="Email address" value={creds.email} onChange={onChangeHandler} />
 
         <TextField
@@ -66,13 +68,29 @@ export default function LoginForm() {
           value={creds.password}
           onChange={onChangeHandler}
         />
+        <TextField
+          name="password"
+          label="Confirm Password"
+          type={showPassword ? 'text' : 'password'}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                  <Iconify icon={showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+          value={creds.password}
+          onChange={onChangeHandler}
+        />
       </Stack>
 
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
-        <Checkbox name="remember" label="Remember me" />
+        {/* <Checkbox name="remember" label="Remember me" />
         <Link variant="subtitle2" underline="hover" sx={{ color: '#9F3239' }}>
           Forgot password?
-        </Link>
+        </Link> */}
       </Stack>
 
       <LoadingButton
@@ -91,12 +109,12 @@ export default function LoginForm() {
         variant="contained"
         onClick={loginHandler}
       >
-        Login
+        Register
       </LoadingButton>
       <p className={classes.not}>
-        Not register in Agan Adhigaram ?{' '}
-        <a href="register" className={classes.signup}>
-          Sign up
+        Already register?{' '}
+        <a href="login" className={classes.signup}>
+          Sign in
         </a>
       </p>
     </>

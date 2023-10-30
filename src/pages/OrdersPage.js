@@ -32,6 +32,7 @@ import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // mock
 import USERLIST from '../_mock/user';
 import OrderTable from 'src/Reuseable/OrderTab/OrderTable';
+import OrderTab from 'src/Reuseable/OrderTab/OrderTab';
 
 // ----------------------------------------------------------------------
 
@@ -98,6 +99,12 @@ export default function OrdersPage() {
     setOpen(null);
   };
 
+  const [orders, setOrders] = useState({
+    all: { booked: [], inProgress: [], delivered: [], cancelled: [] },
+    superfast: { booked: [], inProgress: [], delivered: [], cancelled: [] },
+    normal: { booked: [], inProgress: [], delivered: [], cancelled: [] },
+  });
+
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -156,9 +163,9 @@ export default function OrdersPage() {
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-          <Typography variant="h4" gutterBottom>
+          {/* <Typography variant="h4" gutterBottom>
             Books
-          </Typography>
+          </Typography> */}
           {/* <Button
             variant="contained"
             sx={{
@@ -177,7 +184,7 @@ export default function OrdersPage() {
           </Button> */}
         </Stack>
 
-        <OrderTabs />
+        <OrderTab orders={orders.all} />
 
         {/* <Card>
           <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />

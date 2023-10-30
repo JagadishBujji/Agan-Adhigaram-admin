@@ -17,6 +17,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { authentication } from './services/firebase';
 import { AuthContext } from './context/auth-context';
 import OrderHistory from './pages/OrderHistory';
+import RegisterPage from './pages/RegisterPage';
 
 // ----------------------------------------------------------------------
 
@@ -24,33 +25,36 @@ export default function Router() {
   const authCtx = useContext(AuthContext);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(authentication, (user) => {
-      console.log('user:', user);
-      if (user) {
-        authCtx.setMyUser(user);
-        authCtx.setLoggedInHandler();
-        navigate('/dashboard', { replace: true });
-      } else {
-        navigate('/login', { replace: true });
-      }
-    });
+  // useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(authentication, (user) => {
+  //     console.log('user:', user);
+  //     if (user) {
+  //       authCtx.setMyUser(user);
+  //       authCtx.setLoggedInHandler();
+  //       navigate('/dashboard', { replace: true });
+  //     } else {
+  //       navigate('/login', { replace: true });
+  //     }
+  //   });
 
-    return () => {
-      // Unsubscribe the onAuthStateChanged listener when the component unmounts
-      unsubscribe();
-    };
-  }, []);
+  //   return () => {
+  //     // Unsubscribe the onAuthStateChanged listener when the component unmounts
+  //     unsubscribe();
+  //   };
+  // }, []);
 
   const routes = useRoutes([
     {
       path: '/dashboard',
-      element: authCtx.isLoggedIn ? <DashboardLayout /> : <Navigate to="/login" />,
+      element: (
+        // authCtx.isLoggedIn ?
+        <DashboardLayout />
+      ),
       children: [
         // { element: <Navigate to="/dashboard/app" />, index: true },
         { element: <Navigate to="/dashboard/orders" />, index: true },
         { path: 'app', element: <DashboardAppPage /> },
-        { path: 'orders', element: <OrdersPage /> },
+        // { path: 'orders', element: <OrdersPage /> },
         { path: 'order-histroy', element: <OrderHistory /> },
         { path: 'categories', element: <CategoriesPage /> },
         { path: 'categories/:id/products', element: <Products /> },
@@ -62,6 +66,10 @@ export default function Router() {
     {
       path: 'login',
       element: <LoginPage />,
+    },
+    {
+      path: 'register',
+      element: <RegisterPage />,
     },
     {
       element: <SimpleLayout />,

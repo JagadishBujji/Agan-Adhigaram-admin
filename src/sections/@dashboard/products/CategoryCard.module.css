@@ -1,5 +1,20 @@
-.cardHeader{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.humorous {
+  color: #f19e38;
+}
+
+.namecard {
+  color: #5f5f5f;
+  font-size: 14px;
+}
+
+.stricksamount{
+    font-size: 14px;
+    text-decoration: line-through;
+    margin-left: 10px;
 }

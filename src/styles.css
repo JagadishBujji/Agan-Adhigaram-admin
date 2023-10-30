@@ -52,7 +52,7 @@ body::-webkit-scrollbar-track {
 
 /* Handle */
 body::-webkit-scrollbar-thumb {
-  background: #F19E38;
+  background: #f19e38;
   border-radius: 10px;
 }
 
@@ -68,3 +68,9 @@ body::-webkit-scrollbar-thumb {
 /* .css-1byr0tz {
   padding-top: 50px;
 } */
+
+.css-1byr0tz {
+  padding-top: 80px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
