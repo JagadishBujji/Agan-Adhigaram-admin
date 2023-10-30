@@ -325,12 +325,29 @@ export default function CategoriesModal({ categories, setCategories, open, close
         <Box sx={style}>
           <form>
             <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <CategoryUpload onChangeHandler={onChangeHandler} category={category} type="category" />
+              </Grid>
+              <Grid item xs={12}>
+                <BasicSelect
+                  label="Categories List Type"
+                  name="listType"
+                  values={[
+                    { displayName: 'All Genres', value: 'All Genres' },
+                    { displayName: 'Humorous', value: 'Humorous' },
+                    { displayName: 'Cultural', value: 'Cultural' },
+                    { displayName: 'Adventure', value: 'Adventure' },
+                  ]}
+                  value={category.listType}
+                  onChange={onChangeHandler}
+                />
+              </Grid>
               <Grid item md={12}>
                 <Item>
                   <TextField
                     fullWidth
                     id="outlined-basic"
-                    label="Category Name"
+                    label="Book Name"
                     variant="outlined"
                     name="name"
                     onChange={onChangeHandler}
@@ -343,9 +360,10 @@ export default function CategoriesModal({ categories, setCategories, open, close
                   <TextField
                     fullWidth
                     id="outlined-basic"
-                    label="Delivery Message (Optional)"
+                    label="Author Name"
                     variant="outlined"
                     name="deliveryMsg"
+                    type="text"
                     onChange={onChangeHandler}
                     value={category.deliveryMsg}
                   />
@@ -356,7 +374,21 @@ export default function CategoriesModal({ categories, setCategories, open, close
                   <TextField
                     fullWidth
                     id="outlined-basic"
-                    label="Order No"
+                    label="Price"
+                    variant="outlined"
+                    name="deliveryMsg"
+                    type="text"
+                    onChange={onChangeHandler}
+                    value={category.deliveryMsg}
+                  />
+                </Item>
+              </Grid>
+              <Grid item xs={12}>
+                <Item>
+                  <TextField
+                    fullWidth
+                    id="outlined-basic"
+                    label="Stock No"
                     variant="outlined"
                     inputProps={{ type: 'number' }}
                     name="orderNo"
@@ -378,18 +410,7 @@ export default function CategoriesModal({ categories, setCategories, open, close
                   Available
                 </Typography>
               </Grid>
-              <Grid item xs={12}>
-                <BasicSelect
-                  label="Choost List Type"
-                  name="listType"
-                  values={[
-                    { displayName: 'Product', value: 'product' },
-                    { displayName: 'Category', value: 'category' },
-                  ]}
-                  value={category.listType}
-                  onChange={onChangeHandler}
-                />
-              </Grid>
+
               {listCategory.show && (
                 <Grid item xs={12}>
                   <Select
@@ -402,9 +423,6 @@ export default function CategoriesModal({ categories, setCategories, open, close
                   />
                 </Grid>
               )}
-              <Grid item xs={12}>
-                <CategoryUpload onChangeHandler={onChangeHandler} category={category} type="category" />
-              </Grid>
             </Grid>
             <div className={classes.uploadBtns}>
               <Button
