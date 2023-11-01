@@ -63,7 +63,7 @@ export default function CategoriesPage() {
         <div className={classes.categoryHeader}>
           <Typography variant="h4">Books Management</Typography>
           <Button variant="contained" onClick={handleModal} className={classes.categoryBtn}>
-            Add Category
+            Add Book
           </Button>
           {showModal && (
             <CategoriesModal

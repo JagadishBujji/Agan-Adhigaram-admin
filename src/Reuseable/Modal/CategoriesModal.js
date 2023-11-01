@@ -330,7 +330,7 @@ export default function CategoriesModal({ categories, setCategories, open, close
               </Grid>
               <Grid item xs={12}>
                 <BasicSelect
-                  label="Categories List Type"
+                  label="Genres List Type"
                   name="listType"
                   values={[
                     { displayName: 'All Genres', value: 'All Genres' },
