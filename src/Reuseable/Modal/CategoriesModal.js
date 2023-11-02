@@ -23,13 +23,14 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 600,
+  width: 1000,
   bgcolor: 'background.paper',
-  border: '2px solid #000',
+  // border: '2px solid #000',
   boxShadow: 24,
   p: 4,
   overflow: 'auto',
   maxHeight: '500px',
+  borderRadius: '20px',
 };
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -323,129 +324,239 @@ export default function CategoriesModal({ categories, setCategories, open, close
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <form>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <CategoryUpload onChangeHandler={onChangeHandler} category={category} type="category" />
-              </Grid>
-              <Grid item xs={12}>
-                <BasicSelect
-                  label="Genres List Type"
-                  name="listType"
-                  values={[
-                    { displayName: 'All Genres', value: 'All Genres' },
-                    { displayName: 'Humorous', value: 'Humorous' },
-                    { displayName: 'Cultural', value: 'Cultural' },
-                    { displayName: 'Adventure', value: 'Adventure' },
-                  ]}
-                  value={category.listType}
-                  onChange={onChangeHandler}
-                />
-              </Grid>
-              <Grid item md={12}>
-                <Item>
+          <Grid container spacing={2}>
+            <Grid item md={6}>
+              <form>
+                <Grid container spacing={2}>
+                  <Typography variant="h4">Card Details</Typography>
+                  <Grid item xs={12}>
+                    <CategoryUpload onChangeHandler={onChangeHandler} category={category} type="category" />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <BasicSelect
+                      label="Genres List Type"
+                      name="listType"
+                      values={[
+                        { displayName: 'All Genres', value: 'All Genres' },
+                        { displayName: 'Humorous', value: 'Humorous' },
+                        { displayName: 'Cultural', value: 'Cultural' },
+                        { displayName: 'Adventure', value: 'Adventure' },
+                      ]}
+                      value={category.listType}
+                      onChange={onChangeHandler}
+                    />
+                  </Grid>
+                  <Grid item md={6}>
+                    <Item>
+                      <TextField
+                        fullWidth
+                        id="outlined-basic"
+                        label="Book Name"
+                        variant="outlined"
+                        name="name"
+                        onChange={onChangeHandler}
+                        value={category.name}
+                      />
+                    </Item>
+                  </Grid>
+                  <Grid item md={6}>
+                    <Item>
+                      <TextField
+                        fullWidth
+                        id="outlined-basic"
+                        label="Author Name"
+                        variant="outlined"
+                        name="deliveryMsg"
+                        type="text"
+                        onChange={onChangeHandler}
+                        value={category.deliveryMsg}
+                      />
+                    </Item>
+                  </Grid>
+                  <Grid item md={6}>
+                    <Item>
+                      <TextField
+                        fullWidth
+                        id="outlined-basic"
+                        label="Price"
+                        variant="outlined"
+                        name="deliveryMsg"
+                        type="text"
+                        onChange={onChangeHandler}
+                        value={category.deliveryMsg}
+                      />
+                    </Item>
+                  </Grid>
+                  <Grid item md={6}>
+                    <Item>
+                      <TextField
+                        fullWidth
+                        id="outlined-basic"
+                        label="Stock No"
+                        variant="outlined"
+                        inputProps={{ type: 'number' }}
+                        name="orderNo"
+                        onChange={onChangeHandler}
+                        value={category.orderNo}
+                      />
+                    </Item>
+                  </Grid>
+                  <Grid item md={6}>
+                    <Typography
+                      sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}
+                    >
+                      <Checkbox
+                        name="isAvailable"
+                        inputProps={{ 'aria-label': 'Checkbox demo' }}
+                        onChange={onChangeHandler}
+                        checked={category.isAvailable}
+                      />
+                      Available
+                    </Typography>
+                  </Grid>
+
+                  {listCategory.show && (
+                    <Grid item xs={12}>
+                      <Select
+                        isMulti
+                        placeholder="Choose categories..."
+                        options={listCategory.values}
+                        value={category.categoryList}
+                        onChange={onChangeCategoryListHandler}
+                        name="categoryList"
+                      />
+                    </Grid>
+                  )}
+                </Grid>
+              </form>
+            </Grid>
+            <Grid item md={6}>
+              <Typography variant="h4" className={classes.booktitle}>Book Details</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
                   <TextField
                     fullWidth
                     id="outlined-basic"
-                    label="Book Name"
+                    label="Book Title"
                     variant="outlined"
                     name="name"
                     onChange={onChangeHandler}
                     value={category.name}
                   />
-                </Item>
-              </Grid>
-              <Grid item xs={12}>
-                <Item>
+                </Grid>
+                <Grid item xs={6}>
                   <TextField
                     fullWidth
                     id="outlined-basic"
-                    label="Author Name"
+                    label="Author"
                     variant="outlined"
-                    name="deliveryMsg"
-                    type="text"
+                    name="name"
                     onChange={onChangeHandler}
-                    value={category.deliveryMsg}
-                  />
-                </Item>
-              </Grid>
-              <Grid item xs={12}>
-                <Item>
-                  <TextField
-                    fullWidth
-                    id="outlined-basic"
-                    label="Price"
-                    variant="outlined"
-                    name="deliveryMsg"
-                    type="text"
-                    onChange={onChangeHandler}
-                    value={category.deliveryMsg}
-                  />
-                </Item>
-              </Grid>
-              <Grid item xs={12}>
-                <Item>
-                  <TextField
-                    fullWidth
-                    id="outlined-basic"
-                    label="Stock No"
-                    variant="outlined"
-                    inputProps={{ type: 'number' }}
-                    name="orderNo"
-                    onChange={onChangeHandler}
-                    value={category.orderNo}
-                  />
-                </Item>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography
-                  sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}
-                >
-                  <Checkbox
-                    name="isAvailable"
-                    inputProps={{ 'aria-label': 'Checkbox demo' }}
-                    onChange={onChangeHandler}
-                    checked={category.isAvailable}
-                  />
-                  Available
-                </Typography>
-              </Grid>
-
-              {listCategory.show && (
-                <Grid item xs={12}>
-                  <Select
-                    isMulti
-                    placeholder="Choose categories..."
-                    options={listCategory.values}
-                    value={category.categoryList}
-                    onChange={onChangeCategoryListHandler}
-                    name="categoryList"
+                    value={category.name}
                   />
                 </Grid>
-              )}
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="outlined-basic"
+                    label="Illustrator"
+                    variant="outlined"
+                    name="name"
+                    onChange={onChangeHandler}
+                    value={category.name}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="outlined-basic"
+                    label="Edition Language"
+                    variant="outlined"
+                    name="name"
+                    onChange={onChangeHandler}
+                    value={category.name}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="outlined-basic"
+                    label="Book Format"
+                    variant="outlined"
+                    name="name"
+                    onChange={onChangeHandler}
+                    value={category.name}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="outlined-basic"
+                    label="Date Published"
+                    variant="outlined"
+                    name="name"
+                    onChange={onChangeHandler}
+                    value={category.name}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="outlined-basic"
+                    label="Publisher"
+                    variant="outlined"
+                    name="name"
+                    onChange={onChangeHandler}
+                    value={category.name}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="outlined-basic"
+                    label="Pages"
+                    variant="outlined"
+                    name="number"
+                    type="tel"
+                    onChange={onChangeHandler}
+                    value={category.name}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="outlined-basic"
+                    label="Reading Age"
+                    variant="outlined"
+                    name="name"
+                    onChange={onChangeHandler}
+                    value={category.name}
+                  />
+                </Grid>
+              </Grid>
             </Grid>
-            <div className={classes.uploadBtns}>
-              <Button
-                variant="contained"
-                sx={{
-                  background: '#9F3239',
+          </Grid>
+          <div className={classes.uploadBtns}>
+            <Button
+              variant="contained"
+              sx={{
+                background: '#F19E38',
+                color: '#fff',
+                transition: '1s',
+                '&: hover': {
+                  background: '#F19E38',
                   color: '#fff',
                   transition: '1s',
-                  '&: hover': {
-                    background: '#9F3239',
-                    color: '#fff',
-                    transition: '1s',
-                  },
-                }}
-                onClick={saveHandler}
-              >
-                Save
-              </Button>
-              <Button variant="outlined" className={classes.uploadCancelBtn} onClick={handleClose}>
-                Cancel
-              </Button>
-            </div>
-          </form>
+                },
+              }}
+              onClick={saveHandler}
+            >
+              Save
+            </Button>
+            <Button variant="outlined" className={classes.uploadCancelBtn} onClick={handleClose}>
+              Cancel
+            </Button>
+          </div>
         </Box>
       </Modal>
     </div>

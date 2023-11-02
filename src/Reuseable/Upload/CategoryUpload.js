@@ -14,11 +14,11 @@ const CategoryUpload = ({ category, onChangeHandler, type }) => {
     <div className={classes.upload}>
       <Button
         sx={{
-          background: '#9F3239',
+          background: '#F19E38',
           color: '#fff',
           transition: '1s',
           '&: hover': {
-            background: '#9F3239',
+            background: '#F19E38',
             color: '#fff',
             transition: '1s',
           },

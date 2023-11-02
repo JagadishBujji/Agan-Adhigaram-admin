@@ -1,10 +1,14 @@
-.uploadBtns{
-    display: flex;
-    justify-content: flex-end;
-    padding: 10px;
+.uploadBtns {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
 }
-.uploadCancelBtn{
-    margin-left: 10px;
-    border: 1px solid #9F3239;
-    color: #9F3239
+.uploadCancelBtn {
+  margin-left: 10px;
+  border: 1px solid #f19e38;
+  color: #f19e38;
+}
+
+.booktitle {
+  margin-bottom: 20px;
 }
