@@ -6,7 +6,8 @@ import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover 
 import account from '../../../_mock/account';
 import { AuthContext } from 'src/context/auth-context';
 import { logout } from 'src/api/auth';
-
+import {selectUser, selectUserDetail} from 'src/store/userSlice';
+import { useSelector } from 'react-redux';
 // ----------------------------------------------------------------------
 
 const MENU_OPTIONS = [
@@ -28,7 +29,9 @@ const MENU_OPTIONS = [
 
 export default function AccountPopover() {
   const authCtx = useContext(AuthContext);
+  const {userDetails}=useSelector(selectUser)
   const [open, setOpen] = useState(null);
+ const {email,name}=userDetails
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
@@ -62,7 +65,9 @@ export default function AccountPopover() {
           }),
         }}
       >
-        <Avatar src={account.photoURL} alt="photoURL" />
+        <Avatar  alt="photoURL" >
+          {name ? name[0].toLocaleUpperCase() : "A"}
+        </Avatar>
       </IconButton>
 
       <Popover
@@ -86,10 +91,10 @@ export default function AccountPopover() {
       >
         <Box sx={{ my: 1.5, px: 2.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {account.displayName}
+            {name}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {account.email}
+            {email}
           </Typography>
         </Box>
 

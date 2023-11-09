@@ -32,8 +32,10 @@ CategoryCard.propTypes = {
 };
 
 export default function CategoryCard({ category, setShowModal }) {
-  const { id, name, cover, price, colors, status, priceSale } = category;
+  const { id, title, author, genre, discounted_price,mrp_price,stock } = category;
+  console.log("books stuff",id,title,category.images[0])
   const navigate = useNavigate();
+
   return (
     <Card
       sx={{ cursor: 'pointer', height: '100%' }}
@@ -56,33 +58,33 @@ export default function CategoryCard({ category, setShowModal }) {
         >
           Order No: {category.orderNo}
         </Label> */}
-        <StyledProductImg alt={name} src={category.imgUrl} />
+        <StyledProductImg alt={name} src={category.images[0]} />
       </Box>
 
       <Stack spacing={2} sx={{ p: 3 }}>
         <Link color="inherit" underline="hover">
           <Typography className={classes.humorous} variant="subtitle2" noWrap>
-            Humorous
+            {genre}
           </Typography>
           <div className={classes.cardHeader}>
             <Typography variant="subtitle2" noWrap>
-              Vadai Pochae
+             {title}
             </Typography>
             <MenuIcon item={category} editItem={() => setShowModal(category)} type="category" />
           </div>
 
           <Typography className={classes.namecard} variant="subtitle2" noWrap>
-            Ramya - Sethuram
+           {author}
           </Typography>
         </Link>
         <Stack direction="row" alignItems="center">
           {/* <ColorPreview colors={colors} /> */}
           <Typography variant="subtitle1">
-            ₹ 499<span className={classes.stricksamount}>₹ 599</span>
+            ₹ {discounted_price}<span className={classes.stricksamount}>₹ {mrp_price}</span>
           </Typography>
         </Stack>
         <Stack direction="row" alignItems="center">
-          Stock: 10
+       {stock}
         </Stack>
       </Stack>
     </Card>

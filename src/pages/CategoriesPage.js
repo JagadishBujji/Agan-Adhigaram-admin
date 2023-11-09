@@ -39,19 +39,34 @@ export default function CategoriesPage() {
     getCategories();
   }, []);
 
+  // const getCategories = () => {
+  //   const booksRef = collection(db, 'categries');
+  //   const q = query(categoriesRef, orderBy('orderNo'));
+  //   getDocs(booksRef)
+  //     .then((snapshot) => {
+  //       const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  //       console.log('getCategories:', docs);
+  //       setCategories(docs);
+  //     })
+  //     .catch((error) => {
+  //       console.log('Error getting categories:', error);
+  //     });
+  // };
+
   const getCategories = () => {
-    const categoriesRef = collection(db, 'categories');
-    const q = query(categoriesRef, orderBy('orderNo'));
-    getDocs(q)
-      .then((querySnapshot) => {
-        const docs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        console.log('getCategories:', docs);
+    const booksRef = collection(db, 'books');
+    // const q = query(categoriesRef, orderBy('orderNo'));
+    getDocs(booksRef)
+      .then((snapshot) => {
+        const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+       
         setCategories(docs);
       })
       .catch((error) => {
         console.log('Error getting categories:', error);
       });
   };
+  console.log('getCategories:', categories);
 
   return (
     <>

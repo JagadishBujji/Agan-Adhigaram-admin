@@ -39,7 +39,7 @@ export default function MenuIcon({ editItem, item, type }) {
           'aria-labelledby': 'basic-button',
         }}
       >
-        {type === 'category' && !item?.name.toLowerCase()?.includes('super') && (
+        {/* {type === 'category' && !item?.name.toLowerCase()?.includes('super') && (
           <MenuItem
             onClick={() => {
               navigate(`/dashboard/categories/${item?.id}/products`, { state: item });
@@ -49,7 +49,7 @@ export default function MenuIcon({ editItem, item, type }) {
               <VisibilityIcon /> View
             </Typography>
           </MenuItem>
-        )}
+        )} */}
 
         <MenuItem
           onClick={() => {
