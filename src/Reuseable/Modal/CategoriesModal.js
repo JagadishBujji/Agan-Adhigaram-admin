@@ -328,7 +328,7 @@ export default function CategoriesModal({ categories, setCategories, open, close
             <Grid item md={6}>
               <form>
                 <Grid container spacing={2}>
-                  <Typography variant="h4">Card Details</Typography>
+                  <Typography variant="h4">Book Details</Typography>
                   <Grid item xs={12}>
                     <CategoryUpload onChangeHandler={onChangeHandler} category={category} type="category" />
                   </Grid>
@@ -433,17 +433,7 @@ export default function CategoriesModal({ categories, setCategories, open, close
             <Grid item md={6}>
               <Typography variant="h4" className={classes.booktitle}>Book Details</Typography>
               <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    id="outlined-basic"
-                    label="Book Title"
-                    variant="outlined"
-                    name="name"
-                    onChange={onChangeHandler}
-                    value={category.name}
-                  />
-                </Grid>
+                
                 <Grid item xs={6}>
                   <TextField
                     fullWidth
@@ -551,7 +541,7 @@ export default function CategoriesModal({ categories, setCategories, open, close
               }}
               onClick={saveHandler}
             >
-              Save
+              Save as Draft
             </Button>
             <Button variant="outlined" className={classes.uploadCancelBtn} onClick={handleClose}>
               Cancel

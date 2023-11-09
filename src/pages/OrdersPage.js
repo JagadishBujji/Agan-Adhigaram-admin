@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 // @mui
 import {
   Card,
@@ -33,6 +33,8 @@ import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 import USERLIST from '../_mock/user';
 import OrderTable from 'src/Reuseable/OrderTab/OrderTable';
 import OrderTab from 'src/Reuseable/OrderTab/OrderTab';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from 'src/services/firebase';
 
 // ----------------------------------------------------------------------
 
@@ -100,10 +102,42 @@ export default function OrdersPage() {
   };
 
   const [orders, setOrders] = useState({
-    all: { booked: [], inProgress: [], delivered: [], cancelled: [] },
-    superfast: { booked: [], inProgress: [], delivered: [], cancelled: [] },
-    normal: { booked: [], inProgress: [], delivered: [], cancelled: [] },
+    all: [],
+    booked: [],
+    dispatch: [],
+    delivered: [],
+    cancelled: [],
   });
+
+  const [fetchData, setFetchData] = useState();
+
+  // useEffect(() => {
+  //   const getData = async () => {
+  //     const docRef = doc(db, 'orders', 'NcA01SUaZoG4L0GeNyep');
+  //     const docSnap = await getDoc(docRef);
+  //     const id=docSnap.id;
+  //     const data = { ...docSnap.data(), id };
+  //     console.log("test data",data)
+  //     setOrders((prev) => {
+  //       const newOrders = { ...prev };
+  //       if(data.status === "booked"){
+  //         console.log("newOrder",newOrders)
+  //         newOrders.
+  //       }
+  //     });
+  //   };
+  //   getData();
+  // }, []);
+  // console.log('Books:', typeof fetchData);
+  //  const test={
+  //   all: { booked: [fetchData], inProgress: [], delivered: [], cancelled: [] },
+  //   superfast: { booked: [], inProgress: [], delivered: [], cancelled: [] },
+  //   normal: { booked: [], inProgress: [], delivered: [], cancelled: [] },
+  //  }
+
+  // setOrders(test)
+  // const [orders,setOrders]=useState({fetchData})
+  console.log('orders for ref', orders);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';

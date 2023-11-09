@@ -10,19 +10,19 @@ import { getStorage } from 'firebase/storage';
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: 'AIzaSyDr_wZ9St7J_Z4KZ-HTGScqcFmFx8T-5z8',
-  authDomain: 'daily-meat-f3130.firebaseapp.com',
-  projectId: 'daily-meat-f3130',
-  storageBucket: 'daily-meat-f3130.appspot.com',
-  messagingSenderId: '39895609246',
-  appId: '1:39895609246:web:bee6a7199c73f67f7ff08f',
-  measurementId: 'G-T1QN4R52Q6',
+  apiKey: "AIzaSyDqIaOupyookXUlQzuNGOja_m-vX02qdMc",
+  authDomain: "agan-adhigaram.firebaseapp.com",
+  projectId: "agan-adhigaram",
+  storageBucket: "agan-adhigaram.appspot.com",
+  messagingSenderId: "101879593712",
+  appId: "1:101879593712:web:d2ba4c76f39375ecc12035",
+  measurementId: "G-FTJECBXM60",
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const authentication = getAuth(app);
-authentication.useDeviceLanguage();
+export const auth= getAuth(app);
+auth.useDeviceLanguage();
 export const db = getFirestore(app);
 export const analytics = getAnalytics(app);
 export const storage = getStorage(app);

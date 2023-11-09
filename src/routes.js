@@ -14,16 +14,23 @@ import Products from './pages/Products';
 import District from './pages/District';
 import { useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { authentication } from './services/firebase';
+import { auth, authentication } from './services/firebase';
 import { AuthContext } from './context/auth-context';
 import OrderHistory from './pages/OrderHistory';
 import RegisterPage from './pages/RegisterPage';
+import { getUserById } from './api/user';
+import { useDispatch, useSelector } from 'react-redux';
+import { errorNotification } from './utils/notification';
+import { login, logout, selectIsAuthenticated } from './store/userSlice';
 
 // ----------------------------------------------------------------------
 
 export default function Router() {
   const authCtx = useContext(AuthContext);
   const navigate = useNavigate();
+  const dispatch=useDispatch()
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const [authChecked, setAuthChecked] = useState(false);
 
   // useEffect(() => {
   //   const unsubscribe = onAuthStateChanged(authentication, (user) => {
@@ -43,12 +50,47 @@ export default function Router() {
   //   };
   // }, []);
 
+
+  useEffect(()=>{
+    const unsubscribe=onAuthStateChanged(auth,async( user)=>{
+      console.log("user in auth",user)
+      if(user){
+        const {uid}=user;
+        console.log('uid',uid)
+        getUserById(uid,(result)=>{
+          if(result.success){
+            dispatch(login(result.data));
+            setAuthChecked(true)
+          }
+          else{
+            errorNotification(result.err.message)
+          }
+        })
+      }
+      else{
+        dispatch(logout())
+        setAuthChecked(true);
+      }
+    })
+    return unsubscribe;
+  },[])
+
+
+  console.log("isAuthenticated",isAuthenticated)
+  
+  const AuthenticatedRoute = ({ element, ...rest }) =>
+    isAuthenticated ? element : <Navigate to="/login" />;
+
+
+
+
   const routes = useRoutes([
     {
       path: '/dashboard',
       element: (
         // authCtx.isLoggedIn ?
-        <DashboardLayout />
+        // <DashboardLayout />
+        <AuthenticatedRoute element={<DashboardLayout />} key="wishlist" />
       ),
       children: [
         // { element: <Navigate to="/dashboard/app" />, index: true },
@@ -72,7 +114,8 @@ export default function Router() {
       element: <RegisterPage />,
     },
     {
-      element: <SimpleLayout />,
+      element:
+       <AuthenticatedRoute element={<SimpleLayout /> } key="wishlist" />,
       children: [
         // { element: <Navigate to="/dashboard/app" />, index: true },
         { element: <Navigate to="/dashboard/orders" />, index: true },

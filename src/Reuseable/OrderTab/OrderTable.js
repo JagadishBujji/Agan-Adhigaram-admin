@@ -163,9 +163,9 @@ export default function OrderTable({ orders, type }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {orders.map((order) => (
+          {/* {orders.map((order) => (
             <Row key={order.id} order={order} type={type} />
-          ))}
+          ))} */}
         </TableBody>
       </Table>
     </TableContainer>

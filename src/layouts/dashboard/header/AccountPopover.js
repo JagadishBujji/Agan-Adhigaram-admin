@@ -5,6 +5,7 @@ import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover 
 // mocks_
 import account from '../../../_mock/account';
 import { AuthContext } from 'src/context/auth-context';
+import { logout } from 'src/api/auth';
 
 // ----------------------------------------------------------------------
 
@@ -39,7 +40,7 @@ export default function AccountPopover() {
 
   const logoutHandler = () => {
     setOpen(null);
-    authCtx.logoutHandler();
+   logout()
   };
 
   return (
@@ -104,7 +105,7 @@ export default function AccountPopover() {
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        <MenuItem onClick={logoutHandler} sx={{ m: 1 }}>
+        <MenuItem onClick={logoutHandler} sx={{ m: 1 }} >
           Logout
         </MenuItem>
       </Popover>
