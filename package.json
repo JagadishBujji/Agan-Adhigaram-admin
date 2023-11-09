@@ -14,8 +14,8 @@
     "clear-all": "rm -rf build node_modules",
     "re-start": "rm -rf build node_modules && yarn install && yarn start",
     "re-build": "rm -rf build node_modules && yarn install && yarn build",
-    "deploy": "firebase deploy --only hosting:daily-meat-f3130",
-    "build-and-deploy": "npm run build && firebase deploy --only hosting:daily-meat-f3130"
+    "deploy": "firebase deploy --only hosting:admin-agan-adhigaram",
+    "build-and-deploy": "npm run build && firebase deploy --only hosting:admin-agan-adhigaram"
   },
   "eslintConfig": {
     "extends": [

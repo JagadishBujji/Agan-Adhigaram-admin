@@ -1,8 +1,12 @@
 {
   "hosting": {
-    "site": "daily-meat-f3130",
     "public": "build",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "site": "admin-agan-adhigaram",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
     "rewrites": [
       {
         "source": "**",
