@@ -28,61 +28,35 @@ import { login, logout, selectIsAuthenticated } from './store/userSlice';
 export default function Router() {
   const authCtx = useContext(AuthContext);
   const navigate = useNavigate();
-  const dispatch=useDispatch()
+  const dispatch = useDispatch();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const [authChecked, setAuthChecked] = useState(false);
 
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(authentication, (user) => {
-  //     console.log('user:', user);
-  //     if (user) {
-  //       authCtx.setMyUser(user);
-  //       authCtx.setLoggedInHandler();
-  //       navigate('/dashboard', { replace: true });
-  //     } else {
-  //       navigate('/login', { replace: true });
-  //     }
-  //   });
-
-  //   return () => {
-  //     // Unsubscribe the onAuthStateChanged listener when the component unmounts
-  //     unsubscribe();
-  //   };
-  // }, []);
-
-
-  useEffect(()=>{
-    const unsubscribe=onAuthStateChanged(auth,async( user)=>{
-      console.log("user in auth",user)
-      if(user){
-        const {uid}=user;
-        console.log('uid',uid)
-        getUserById(uid,(result)=>{
-          if(result.success){
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('user in auth', user);
+      if (user) {
+        const { uid } = user;
+        console.log('uid', uid);
+        getUserById(uid, (result) => {
+          if (result.success) {
             dispatch(login(result.data));
-            setAuthChecked(true)
+            setAuthChecked(true);
+          } else {
+            errorNotification(result.err.message);
           }
-          else{
-            errorNotification(result.err.message)
-          }
-        })
-      }
-      else{
-        dispatch(logout())
+        });
+      } else {
+        dispatch(logout());
         setAuthChecked(true);
       }
-    })
+    });
     return unsubscribe;
-  },[])
+  }, []);
 
+  console.log('isAuthenticated', isAuthenticated);
 
-  console.log("isAuthenticated",isAuthenticated)
-  
-  const AuthenticatedRoute = ({ element, ...rest }) =>
-    isAuthenticated ? element : <Navigate to="/login" />;
-
-
-
+  const AuthenticatedRoute = ({ element, ...rest }) => (isAuthenticated ? element : <Navigate to="/login" />);
 
   const routes = useRoutes([
     {
@@ -90,7 +64,7 @@ export default function Router() {
       element: (
         // authCtx.isLoggedIn ?
         // <DashboardLayout />
-        <AuthenticatedRoute element={<DashboardLayout />} key="wishlist" />
+        <AuthenticatedRoute element={<DashboardLayout />} />
       ),
       children: [
         // { element: <Navigate to="/dashboard/app" />, index: true },
@@ -114,8 +88,7 @@ export default function Router() {
       element: <RegisterPage />,
     },
     {
-      element:
-       <AuthenticatedRoute element={<SimpleLayout /> } key="wishlist" />,
+      element: <AuthenticatedRoute element={<SimpleLayout />} />,
       children: [
         // { element: <Navigate to="/dashboard/app" />, index: true },
         { element: <Navigate to="/dashboard/orders" />, index: true },
@@ -128,6 +101,11 @@ export default function Router() {
       element: <Navigate to="/404" replace />,
     },
   ]);
+
+  // Wait until auth state is checked before rendering routes
+  if (!authChecked) {
+    return <div>Loading...</div>;
+  }
 
   return routes;
 }

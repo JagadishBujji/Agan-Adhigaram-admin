@@ -74,22 +74,26 @@ export default function OrderTab({ orders }) {
     <Box sx={{ width: '100%' }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-          <Tab sx={tab} label="Booked" {...a11yProps(0)} />
-          <Tab sx={tab} label="Dispatched" {...a11yProps(1)} />
-          <Tab sx={tab} label="Delivered" {...a11yProps(2)} />
-          <Tab sx={tab} label="Cancelled" {...a11yProps(3)} />
+          <Tab sx={tab} label="All" {...a11yProps(0)} />
+          <Tab sx={tab} label="Booked" {...a11yProps(1)} />
+          <Tab sx={tab} label="Dispatched" {...a11yProps(2)} />
+          <Tab sx={tab} label="Delivered" {...a11yProps(3)} />
+          <Tab sx={tab} label="Cancelled" {...a11yProps(4)} />
         </Tabs>
       </Box>
       <TabPanel value={value} index={0}>
-        <OrderTable orders={orders.booked} type="booked" />
+        <OrderTable orders={orders.all} type="all" />
       </TabPanel>
       <TabPanel value={value} index={1}>
-        <OrderTable orders={orders.inProgress} type="inProgress" />
+        <OrderTable orders={orders.booked} type="booked" />
       </TabPanel>
       <TabPanel value={value} index={2}>
-        <OrderTable orders={orders.delivered} type="delivered" />
+        <OrderTable orders={orders.inProgress} type="inProgress" />
       </TabPanel>
       <TabPanel value={value} index={3}>
+        <OrderTable orders={orders.delivered} type="delivered" />
+      </TabPanel>
+      <TabPanel value={value} index={4}>
         <OrderTable orders={orders.cancelled} type="cancelled" />
       </TabPanel>
     </Box>

@@ -33,8 +33,8 @@ import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 import USERLIST from '../_mock/user';
 import OrderTable from 'src/Reuseable/OrderTab/OrderTable';
 import OrderTab from 'src/Reuseable/OrderTab/OrderTab';
-import { doc, getDoc } from 'firebase/firestore';
 import { db } from 'src/services/firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 // ----------------------------------------------------------------------
 
@@ -109,35 +109,17 @@ export default function OrdersPage() {
     cancelled: [],
   });
 
-  const [fetchData, setFetchData] = useState();
+  useEffect(() => {
+    const getData = async () => {
+      const q = query(collection(db, 'orders'));
 
-  // useEffect(() => {
-  //   const getData = async () => {
-  //     const docRef = doc(db, 'orders', 'NcA01SUaZoG4L0GeNyep');
-  //     const docSnap = await getDoc(docRef);
-  //     const id=docSnap.id;
-  //     const data = { ...docSnap.data(), id };
-  //     console.log("test data",data)
-  //     setOrders((prev) => {
-  //       const newOrders = { ...prev };
-  //       if(data.status === "booked"){
-  //         console.log("newOrder",newOrders)
-  //         newOrders.
-  //       }
-  //     });
-  //   };
-  //   getData();
-  // }, []);
-  // console.log('Books:', typeof fetchData);
-  //  const test={
-  //   all: { booked: [fetchData], inProgress: [], delivered: [], cancelled: [] },
-  //   superfast: { booked: [], inProgress: [], delivered: [], cancelled: [] },
-  //   normal: { booked: [], inProgress: [], delivered: [], cancelled: [] },
-  //  }
-
-  // setOrders(test)
-  // const [orders,setOrders]=useState({fetchData})
-  console.log('orders for ref', orders);
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        console.log(doc.id, ' => ', doc.data());
+      });
+    };
+    getData();
+  }, []);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -218,7 +200,7 @@ export default function OrdersPage() {
           </Button> */}
         </Stack>
 
-        <OrderTab orders={orders.all} />
+        <OrderTab orders={orders} />
 
         {/* <Card>
           <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
