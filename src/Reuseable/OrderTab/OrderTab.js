@@ -1,10 +1,14 @@
-import * as React from 'react';
+import { useEffect, useState } from 'react';
+import { collection, getDocs, query } from 'firebase/firestore';
+
 import PropTypes from 'prop-types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import OrderTable from './OrderTable';
+
+import { db } from '../../services/firebase';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -39,8 +43,58 @@ function a11yProps(index) {
   };
 }
 
-export default function OrderTab({ orders }) {
-  const [value, setValue] = React.useState(0);
+export default function OrderTab() {
+  const [value, setValue] = useState(0);
+
+  const [orders, setOrders] = useState({
+    all: [],
+    booked: [],
+    dispatched: [],
+    delivered: [],
+    cancelled: [],
+  });
+
+  useEffect(() => {
+    const getData = async () => {
+      console.log('getData');
+      const q = query(collection(db, 'orders'));
+
+      const querySnapshot = await getDocs(q);
+
+      const orderList = {
+        all: [],
+        booked: [],
+        dispatched: [],
+        delivered: [],
+        cancelled: [],
+      };
+
+      console.log('getData1', orderList);
+
+      querySnapshot.forEach((doc) => {
+        const newData = {
+          id: doc.id,
+          ...doc.data(),
+        };
+
+        orderList.all.push(newData);
+        if (newData.status === 'booked') {
+          orderList.booked.push(newData);
+        } else if (newData.status === 'dispatched') {
+          orderList.dispatched.push(newData);
+        } else if (newData.status === 'delivered') {
+          orderList.delivered.push(newData);
+        } else if (newData.status === 'cancelled') {
+          orderList.cancelled.push(newData);
+        }
+      });
+
+      console.log('getData2', orderList);
+      setOrders(orderList);
+    };
+
+    getData();
+  }, []);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);

@@ -42,11 +42,11 @@ function Row({ order, type }) {
         <TableCell component="th" scope="row">
           {order.id}
         </TableCell>
-        <TableCell align="left">{order.userDetails.name}</TableCell>
-        <TableCell align="left">{order.userDetails.mobile}</TableCell>
-        <TableCell align="left">{`${order.userDetails.deliveryAddress.flatStreetName}, ${order.userDetails.deliveryAddress.landmark}, ${order.userDetails.deliveryAddress.deliveryArea}, ${order.userDetails.deliveryAddress.city} - ${order.userDetails.deliveryAddress.pincode}\n(${order.userDetails.deliveryAddress.mobileNo})`}</TableCell>
+        <TableCell align="left">{order.userDetail.name}</TableCell>
+        <TableCell align="left">{order.userDetail.phone}</TableCell>
+        <TableCell align="left">{`${order.userDetail.address}`}</TableCell>
         <TableCell align="left">
-          {order.timestamp.toDate().toLocaleString('en-IN', {
+          {new Date(order.ordered_timestamp).toLocaleString('en-IN', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -56,10 +56,10 @@ function Row({ order, type }) {
           })}
         </TableCell>
         <TableCell align="left" style={{ textTransform: 'capitalize' }}>
-          {order.type}
+          {order.logistics}
         </TableCell>
-        <TableCell align="left">{order.totalProducts}</TableCell>
-        <TableCell align="left">Rs. {order.price.totalPrice}</TableCell>
+        <TableCell align="left">{order.total_qty}</TableCell>
+        <TableCell align="left">Rs. {order.total_price}</TableCell>
         <TableCell align="left" style={{ textTransform: 'uppercase' }}>
           {order.status}
         </TableCell>
@@ -91,17 +91,10 @@ function Row({ order, type }) {
             >
               <Stack direction="row">
                 <Typography>
-                  {order.orderedProducts
-                    .map(
-                      (prod) =>
-                        `${prod.name} (${prod.quantity} ${prod.unit}) x ${prod.noOfItems} - Rs.${prod.totalPrice}`
-                    )
+                  {order.ordered_books
+                    .map((book) => `${book.title} x ${book.qty} - Rs.${book.total_price}`)
                     .join(' | ')}{' '}
-                  |{' '}
-                  <b>
-                    Delivery Fee: Rs.
-                    {order.type === 'superfast' ? order.price.superFastDeliveryCharge : order.price.deliveryCharge}
-                  </b>
+                  | <b>Delivery Fee: Rs. {order.delivery_charge}</b>
                 </Typography>
               </Stack>
               <Box>
@@ -128,7 +121,6 @@ function Row({ order, type }) {
 }
 
 export default function OrderTable({ orders, type }) {
-  console.log('orders: ', orders, type);
   return (
     <TableContainer component={Paper}>
       <Table aria-label="collapsible table" sx={{ minWidth: 1000 }}>
@@ -162,11 +154,7 @@ export default function OrderTable({ orders, type }) {
             <TableCell />
           </TableRow>
         </TableHead>
-        <TableBody>
-          {/* {orders.map((order) => (
-            <Row key={order.id} order={order} type={type} />
-          ))} */}
-        </TableBody>
+        <TableBody>{orders && orders?.map((order) => <Row key={order.id} order={order} type={type} />)}</TableBody>
       </Table>
     </TableContainer>
   );

@@ -31,10 +31,7 @@ import Scrollbar from '../components/scrollbar';
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // mock
 import USERLIST from '../_mock/user';
-import OrderTable from 'src/Reuseable/OrderTab/OrderTable';
 import OrderTab from 'src/Reuseable/OrderTab/OrderTab';
-import { db } from 'src/services/firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
 
 // ----------------------------------------------------------------------
 
@@ -100,26 +97,6 @@ export default function OrdersPage() {
   const handleCloseMenu = () => {
     setOpen(null);
   };
-
-  const [orders, setOrders] = useState({
-    all: [],
-    booked: [],
-    dispatch: [],
-    delivered: [],
-    cancelled: [],
-  });
-
-  useEffect(() => {
-    const getData = async () => {
-      const q = query(collection(db, 'orders'));
-
-      const querySnapshot = await getDocs(q);
-      querySnapshot.forEach((doc) => {
-        console.log(doc.id, ' => ', doc.data());
-      });
-    };
-    getData();
-  }, []);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -200,7 +177,7 @@ export default function OrdersPage() {
           </Button> */}
         </Stack>
 
-        <OrderTab orders={orders} />
+        <OrderTab />
 
         {/* <Card>
           <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
