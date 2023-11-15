@@ -1,5 +1,5 @@
 const isNumeric = (value) => {
-  return /^([1-9]\d*|0)(\.\d+)?$/.test(value);
+  return /^\d+$/.test(value);
 };
 
 const areArraysEqual = (arr1, arr2) => {
@@ -34,10 +34,12 @@ function isValidPassword(password) {
   return passwordRegex.test(password);
 }
 
+function isValidName(name) {
+  const nameRegex = /^[A-Za-z\s'-]+$/;
 
+  return nameRegex.test(name);
+}
 
-
-
-export { isValidEmail, isValidPassword };
+export { isValidEmail, isValidPassword,isValidName };
 
 export { isNumeric, areArraysEqual, validatePincode };

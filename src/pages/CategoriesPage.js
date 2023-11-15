@@ -19,6 +19,12 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [categoryData, setCategoryData] = useState(null);
+  const [book,setBook]=useState()
+  
+  const getBook=(book)=>{
+    setBook(book);
+  }
+  console.log("getbook",book)
 
   const handleModal = () => {
     setShowModal(true);
@@ -59,7 +65,7 @@ export default function CategoriesPage() {
     getDocs(booksRef)
       .then((snapshot) => {
         const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-       
+
         setCategories(docs);
       })
       .catch((error) => {
@@ -71,7 +77,7 @@ export default function CategoriesPage() {
   return (
     <>
       <Helmet>
-        <title> Agan-Adhigaram-admin | Books  </title>
+        <title> Agan-Adhigaram-admin | Books </title>
       </Helmet>
 
       <Container>
@@ -86,7 +92,9 @@ export default function CategoriesPage() {
               setCategories={setCategories}
               open={handleModal}
               close={closeModal}
-              categoryData={categoryData}
+              book={book}
+              showModal={showModal}
+              getBook={getBook}
             />
           )}
         </div>
@@ -103,13 +111,8 @@ export default function CategoriesPage() {
         </Stack> */}
 
         {/* <ProductList products={PRODUCTS} /> */}
-        <CategoryList
-          categories={categories}
-          setShowModal={(category) => {
-            setShowModal(true);
-            setCategoryData(category);
-          }}
-        />
+        <CategoryList categories={categories} setShowModal={setShowModal} getBook={getBook} showModal={showModal} />
+       
         {/* <ProductCartWidget /> */}
       </Container>
     </>

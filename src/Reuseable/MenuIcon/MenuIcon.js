@@ -7,15 +7,23 @@ import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate } from 'react-router-dom';
 import { Typography } from '@mui/material';
+import CategoriesModal from '../Modal/CategoriesModal';
 
-export default function MenuIcon({ editItem, item, type }) {
+export default function MenuIcon({ editItem, item, type, setShowModal, getBook }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
+  // const [isEditable, setIsEditable] = React.useState(false);
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleEditBooks = () => {
+    
+    setShowModal(true);
+    getBook(item);  //callback function (child to parent props)
   };
 
   const navigate = useNavigate();
@@ -54,14 +62,17 @@ export default function MenuIcon({ editItem, item, type }) {
         <MenuItem
           onClick={() => {
             handleClose();
-            editItem();
+            handleEditBooks();
           }}
         >
           <Typography sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
             <EditIcon sx={{ mr: 1 }} />
             Edit
           </Typography>
+
+          <br />
         </MenuItem>
+        
       </Menu>
     </div>
   );

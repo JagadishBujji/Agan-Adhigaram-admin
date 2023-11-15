@@ -6,7 +6,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 // import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
-import { Grid, Typography } from '@mui/material';
+import { Grid, TextareaAutosize, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
@@ -15,9 +15,10 @@ import CategoryUpload from '../Upload/CategoryUpload';
 import classes from './CategoriesModal.module.css';
 import { db, storage } from '../../services/firebase';
 import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
-import { areArraysEqual, isNumeric } from '../../utils/validation';
+import { areArraysEqual, isNumeric, isValidName } from '../../utils/validation';
 import BasicSelect from '../Select/Select';
 import { Publish } from '@mui/icons-material';
+import { errorNotification } from 'src/utils/notification';
 
 const style = {
   position: 'absolute',
@@ -42,9 +43,12 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export default function CategoriesModal({ categories, setCategories, open, close, categoryData }) {
+export default function CategoriesModal({ categories, setCategories, open, close, book, showModal, getBook }) {
   const [category, setCategory] = useState([]);
   const [listCategory, setListCategory] = useState({ show: false, values: [] });
+  const [isChecked, setIsChecked] = useState(false);
+
+  console.log('isEditable,setCategory', book, showModal);
 
   // useEffect(() => {
   //   // console.log(categories.length, categoryData);
@@ -80,9 +84,11 @@ export default function CategoriesModal({ categories, setCategories, open, close
   //   }
   // }, [categories, categoryData]);
 
-  //  useEffect(()=>{
-  //   setCategory(categories)
-  //  },[])
+  useEffect(() => {
+    book ? setCategory(book) : setCategory(categories);
+
+    book && setIsChecked(book.is_available);
+  }, [showModal, categories, book]);
 
   const handleClose = () => {
     close();
@@ -151,42 +157,20 @@ export default function CategoriesModal({ categories, setCategories, open, close
     //   }
     // }
   };
-  console.log('setCategory', category);
+
+  console.log('setCategory1', category);
   const onChangeCategoryListHandler = (values) => {
-    // console.log('va', values);
     setCategory((prevState) => ({
       ...prevState,
       categoryList: values,
     }));
   };
 
-
-
   // const saveHandler = () => {
   //   let isImageData = false; // false - only values, true - img + values
-  //   // console.log('cat:', category);
-  //   if (!category.name) {
-  //     alert('Category Name should not be empty');
-  //     return;
-  //   }
-  //   // if (!isNumeric(category.orderNo)) {
-  //   //   alert('Order number should be number and not other characters');
-  //   //   return;
-  //   // }
-
-  //   // if (parseInt(category.orderNo) > categories?.length + 1) {
-  //   //   alert('Order number should not be greater than total categories + 1');
-  //   //   return;
-  //   // }
-
-  //   // if (category.listType === 'category' && category.categoryList.length === 0) {
-  //   //   alert('Category List should not be empty, when list type is category');
-  //   //   return;
-  //   // }
-
-  //   // if (categoryData) {
-  //   //   // edit
-  //   //   if (
+  // if (categoryData) {
+  // edit
+  //   if (
   //   //     categoryData.name === category.name &&
   //   //     categoryData.deliveryMsg === category.deliveryMsg &&
   //   //     categoryData.orderNo === category.orderNo &&
@@ -312,18 +296,22 @@ export default function CategoriesModal({ categories, setCategories, open, close
   //     }
   //   }
   // };
-  const saveHandler = async () => {
-    const docRef = await addDoc(collection(db, 'books'), {
-      amazon_link: '',
+
+  const handlePublish = async () => {
+    const bookRef = doc(db, 'books', book.id);
+    const date=new Date(category.date_published)
+    const day=date.getDate()
+    const month=date.getMonth()+1;
+    const year=date.getFullYear()
+
+    const formatedDate=`${day.toString().padStart(2,'0')}-${month.toString().padStart(2, '0')}-${year}`
+    const temp = {
       author: category.author,
       book_format: category.book_format,
-      book_id: '',
-      date_published: new Date(category.date_published).getTime(),
-      description: '',
-      discount_percentage: 0,
-      discount_price: 0,
+      date_published: {formatedDate},
+      description: category.description,
       genre: category.genre,
-      illustrator:category.illustrator,
+      illustrator: category.illustrator,
       images: [
         'https://firebasestorage.googleapis.com/v0/b/agan-adhigaram.appspot.com/o/vadai.png?alt=media',
         ' https://firebasestorage.googleapis.com/v0/b/agan-adhigaram.appspot.com/o/vadaibook.png?alt=media',
@@ -337,14 +325,57 @@ export default function CategoriesModal({ categories, setCategories, open, close
       pages: category.pages,
       publisher: category.publisher,
       reading_age: category.reading_age,
-      status:"draft",
       stock: category.stock,
       title: category.title,
-      
-    });
-    handleClose()
+      is_available: isChecked,
+    };
+    await updateDoc(bookRef, temp);
+    handleClose();
+    setIsChecked(false);
+    getBook(null);
+  };
+  const handleSaveDraft= async ()=>{
+   const docRef= await addDoc(collection(db, 'books'), {
+      amazon_link: '',
+      author: category.author,
+      book_format: category.book_format,
+      book_id: '',
+      date_published: new Date(category.date_published).getTime(),
+      description: category.description,
+      discount_percentage: 0,
+      discount_price: 0,
+      genre: category.genre,
+      illustrator: category.illustrator,
+      images: [
+        'https://firebasestorage.googleapis.com/v0/b/agan-adhigaram.appspot.com/o/vadai.png?alt=media',
+        ' https://firebasestorage.googleapis.com/v0/b/agan-adhigaram.appspot.com/o/vadaibook.png?alt=media',
+        'https://firebasestorage.googleapis.com/v0/b/agan-adhigaram.appspot.com/o/smallvadibook.svg?alt=media',
+        'https://firebasestorage.googleapis.com/v0/b/agan-adhigaram.appspot.com/o/vadaileaf.svg?alt=media',
+        'https://firebasestorage.googleapis.com/v0/b/agan-adhigaram.appspot.com/o/backvadipostion.svg?alt=media',
+        'https://firebasestorage.googleapis.com/v0/b/agan-adhigaram.appspot.com/o/frontvadaipostion.svg?alt=media',
+      ],
+      language: category.language,
+      mrp_price: category.mrp_price,
+      pages: category.pages,
+      publisher: category.publisher,
+      reading_age: category.reading_age,
+      status: 'draft',
+      stock: category.stock,
+      title: category.title,
+      is_available: isChecked,
+    }); 
+    handleClose();
+  }
 
-  } ;
+  const saveHandler =  () => {
+    !isNumeric(category.pages) ? errorNotification("Invalid Pages"):
+      !isNumeric(category.stock) ?errorNotification("Invalid stocks"):
+      !isNumeric(category.mrp_price) ?errorNotification("Invalid Price"):
+      !isValidName(category.author) ?errorNotification("Invalid Author Name"):
+      !isValidName(category.illustrator) ? errorNotification("Invalid Illustrator Name"):
+      !isValidName(category.language) ?  errorNotification("Invalid Language"): handleSaveDraft()
+    
+  };
 
   return (
     <div>
@@ -367,14 +398,14 @@ export default function CategoriesModal({ categories, setCategories, open, close
                     <BasicSelect
                       label="Genres List Type"
                       name="genre"
-                      values={[
-                        { displayName: 'All Genres', value: 'All Genres' },
-                        { displayName: 'Humorous', value: 'Humorous' },
-                        { displayName: 'Cultural', value: 'Cultural' },
-                        { displayName: 'Adventure', value: 'Adventure' },
-                      ]}
+                      // values={[
+                      //   { displayName: 'All Genres', value: 'All Genres' },
+                      //   { displayName: 'Humorous', value: 'horror' },
+                      //   { displayName: 'Cultural', value: 'Cultural' },
+                      //   { displayName: 'Adventure', value: 'Adventure' },
+                      // ]}
                       value={category.genre}
-                      onChange={onChangeHandler}
+                      // onChange={onChangeHandler}
                     />
                   </Grid>
                   <Grid item md={6}>
@@ -437,10 +468,12 @@ export default function CategoriesModal({ categories, setCategories, open, close
                       sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}
                     >
                       <Checkbox
-                        name="isAvailable"
+                        name="is_available"
                         inputProps={{ 'aria-label': 'Checkbox demo' }}
-                        onChange={onChangeHandler}
-                        checked={category.isAvailable}
+                        onClick={() => {
+                          setIsChecked(!isChecked);
+                        }}
+                        checked={isChecked}
                       />
                       Available
                     </Typography>
@@ -458,6 +491,20 @@ export default function CategoriesModal({ categories, setCategories, open, close
                       />
                     </Grid>
                   )} */}
+                  <Grid item md={12}>
+                    <Item>
+                      <TextField
+                        fullWidth
+                        id="outlined-basic"
+                        label="Description"
+                        variant="outlined"
+                        name="description"
+                        type="text"
+                        onChange={onChangeHandler}
+                        value={category.description}
+                      />
+                    </Item>
+                  </Grid>
                 </Grid>
               </form>
             </Grid>
@@ -576,6 +623,24 @@ export default function CategoriesModal({ categories, setCategories, open, close
             >
               Save as Draft
             </Button>
+
+            <Button
+              variant="contained"
+              sx={{
+                background: '#F19E38',
+                color: '#fff',
+                transition: '1s',
+                '&: hover': {
+                  background: '#F19E38',
+                  color: '#fff',
+                  transition: '1s',
+                },
+              }}
+              onClick={handlePublish}
+            >
+              Publish
+            </Button>
+
             <Button variant="outlined" className={classes.uploadCancelBtn} onClick={handleClose}>
               Cancel
             </Button>

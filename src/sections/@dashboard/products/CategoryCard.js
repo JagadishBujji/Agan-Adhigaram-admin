@@ -31,7 +31,8 @@ CategoryCard.propTypes = {
   category: PropTypes.object,
 };
 
-export default function CategoryCard({ category, setShowModal }) {
+
+export default function CategoryCard({ category, setShowModal,getBook }) {
   const { id, title, author, genre, discounted_price,mrp_price,stock } = category;
   console.log("books stuff",id,title,category.images[0])
   const navigate = useNavigate();
@@ -70,7 +71,10 @@ export default function CategoryCard({ category, setShowModal }) {
             <Typography variant="subtitle2" noWrap>
              {title}
             </Typography>
-            <MenuIcon item={category} editItem={() => setShowModal(category)} type="category" />
+            
+            <MenuIcon item={category}  type="category" setShowModal={setShowModal} getBook={getBook} />
+            
+            
           </div>
 
           <Typography className={classes.namecard} variant="subtitle2" noWrap>
