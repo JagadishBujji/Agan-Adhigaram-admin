@@ -17,6 +17,7 @@ import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { Button, Stack } from '@mui/material';
+import SpanningTable from './SpanningTable';
 
 function Row({ order, type }) {
   const [open, setOpen] = React.useState(false);
@@ -34,6 +35,44 @@ function Row({ order, type }) {
         })
         .catch((err) => console.log(err));
     }
+  };
+
+  const TAX_RATE = 0.07;
+
+  function ccyFormat(num) {
+    return `${num.toFixed(2)}`;
+  }
+
+  function priceRow(qty, unit) {
+    return qty * unit;
+  }
+
+  function createRow(desc, qty, unit) {
+    const price = priceRow(qty, unit);
+    return { desc, qty, unit, price };
+  }
+
+  function subtotal(items) {
+    return items.map(({ price }) => price).reduce((sum, i) => sum + i, 0);
+  }
+
+  const rows = [
+    createRow('Paperclips (Box)', 100, 1.15),
+    createRow('Paper (Case)', 10, 45.99),
+    createRow('Waste Basket', 2, 17.99),
+  ];
+
+  const invoiceSubtotal = subtotal(rows);
+  const invoiceTaxes = TAX_RATE * invoiceSubtotal;
+  const invoiceTotal = invoiceTaxes + invoiceSubtotal;
+
+  const booked = {
+    background: '#F19E38',
+    color: '#fff',
+    '&:hover': {
+      background: '#F19E38',
+      color: '#fff',
+    },
   };
 
   return (
@@ -82,8 +121,63 @@ function Row({ order, type }) {
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={12}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <Typography variant="h6" gutterBottom component="div">
-              Products Ordered
+            <Box sx={{ margin: 1 }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" marginBottom="10px">
+                <Typography variant="h6" gutterBottom component="div">
+                  Ordered Books
+                </Typography>
+                <Button sx={booked} variant="contained">
+                  Booked
+                </Button>
+              </Stack>
+              <Table size="medium" aria-label="purchases">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Title</TableCell>
+                    <TableCell>Genre</TableCell>
+                    <TableCell align="right">Author</TableCell>
+                    <TableCell align="right">Book Format</TableCell>
+                    <TableCell align="right">Price</TableCell>
+                    <TableCell align="right">Quantity</TableCell>
+                    <TableCell align="right">Total Price</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {order.ordered_books.map((book) => (
+                    <TableRow key={book.id}>
+                      <TableCell component="th" scope="row">
+                        {book.title}
+                      </TableCell>
+                      <TableCell>{book.genre}</TableCell>
+                      <TableCell align="right">{book.author}</TableCell>
+                      <TableCell align="right">{book.book_format}</TableCell>
+                      <TableCell align="right">{book.item_price}</TableCell>
+                      <TableCell align="right">{book.qty}</TableCell>
+                      <TableCell align="right">{book.total_price}</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TableCell rowSpan={4} />
+                    <TableCell rowSpan={4} />
+                    <TableCell rowSpan={4} />
+                    <TableCell rowSpan={4} />
+                    <TableCell colSpan={2}>Subtotal</TableCell>
+                    <TableCell align="right">{ccyFormat(invoiceSubtotal)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Tax</TableCell>
+                    <TableCell align="right">{`${(TAX_RATE * 100).toFixed(0)} %`}</TableCell>
+                    <TableCell align="right">{ccyFormat(invoiceTaxes)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={2}>Total</TableCell>
+                    <TableCell align="right">{ccyFormat(invoiceTotal)}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </Box>
+            {/* <Typography variant="h6" gutterBottom component="div">
+              Products Ordered~
             </Typography>
             <Stack
               sx={{ margin: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -112,7 +206,7 @@ function Row({ order, type }) {
                   ''
                 )}
               </Box>
-            </Stack>
+            </Stack> */}
           </Collapse>
         </TableCell>
       </TableRow>
@@ -123,7 +217,7 @@ function Row({ order, type }) {
 export default function OrderTable({ orders, type }) {
   return (
     <TableContainer component={Paper}>
-      <Table aria-label="collapsible table" sx={{ minWidth: 1000 }}>
+      <Table aria-label="collapsible table" sx={{ minWidth: 1400 }}>
         <TableHead>
           <TableRow>
             <TableCell sx={{ color: '#F19E38' }}>Order ID</TableCell>
