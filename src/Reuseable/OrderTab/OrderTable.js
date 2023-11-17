@@ -16,8 +16,8 @@ import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { Button, Stack } from '@mui/material';
-import SpanningTable from './SpanningTable';
+import { Button, Card, Stack } from '@mui/material';
+import classes from './OrderTable.module.css';
 
 function Row({ order, type }) {
   const [open, setOpen] = React.useState(false);
@@ -83,7 +83,7 @@ function Row({ order, type }) {
         </TableCell>
         <TableCell align="left">{order.userDetail.name}</TableCell>
         <TableCell align="left">{order.userDetail.phone}</TableCell>
-        <TableCell align="left">{`${order.userDetail.address}`}</TableCell>
+        {/* <TableCell align="left">{`${order.userDetail.address}`}</TableCell> */}
         <TableCell align="left">
           {new Date(order.ordered_timestamp).toLocaleString('en-IN', {
             day: '2-digit',
@@ -94,10 +94,10 @@ function Row({ order, type }) {
             hour12: true,
           })}
         </TableCell>
-        <TableCell align="left" style={{ textTransform: 'capitalize' }}>
+        {/* <TableCell align="left" style={{ textTransform: 'capitalize' }}>
           {order.logistics}
-        </TableCell>
-        <TableCell align="left">{order.total_qty}</TableCell>
+        </TableCell> */}
+        {/* <TableCell align="left">{order.total_qty}</TableCell> */}
         <TableCell align="left">Rs. {order.total_price}</TableCell>
         <TableCell align="left" style={{ textTransform: 'uppercase' }}>
           {order.status}
@@ -124,11 +124,26 @@ function Row({ order, type }) {
             <Box sx={{ margin: 1 }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" marginBottom="10px">
                 <Typography variant="h6" gutterBottom component="div">
-                  Ordered Books
+                  Order Detail
                 </Typography>
+
                 <Button sx={booked} variant="contained">
                   Booked
                 </Button>
+              </Stack>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" marginBottom="10px">
+                <Card sx={{padding: "10px", mb: 1, width: "100%"}}>
+                  <Typography>
+                    <b className={classes.addres}>Address :</b><span>103, 4th street, krs nagar, katpadi - 632007</span>
+                  </Typography>
+                  <Typography>
+                    <b className={classes.addres}>logistics :</b>
+                    <span>103, 4th street, krs nagar, katpadi - 632007</span>
+                  </Typography>
+                  <Typography>
+                    <b className={classes.addres}>Qty :</b><span>103, 4th street, krs nagar, katpadi - 632007</span>
+                  </Typography>
+                </Card>
               </Stack>
               <Table size="medium" aria-label="purchases">
                 <TableHead>
@@ -168,6 +183,11 @@ function Row({ order, type }) {
                     <TableCell>Tax</TableCell>
                     <TableCell align="right">{`${(TAX_RATE * 100).toFixed(0)} %`}</TableCell>
                     <TableCell align="right">{ccyFormat(invoiceTaxes)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Delivery charge</TableCell>
+                    <TableCell align="right"></TableCell>
+                    <TableCell align="right">100</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell colSpan={2}>Total</TableCell>
@@ -217,7 +237,7 @@ function Row({ order, type }) {
 export default function OrderTable({ orders, type }) {
   return (
     <TableContainer component={Paper}>
-      <Table aria-label="collapsible table" sx={{ minWidth: 1400 }}>
+      <Table aria-label="collapsible table" sx={{ minWidth: 800 }}>
         <TableHead>
           <TableRow>
             <TableCell sx={{ color: '#F19E38' }}>Order ID</TableCell>
@@ -227,18 +247,18 @@ export default function OrderTable({ orders, type }) {
             <TableCell sx={{ color: '#F19E38' }} align="left">
               Phone
             </TableCell>
-            <TableCell sx={{ color: '#F19E38' }} align="left">
+            {/* <TableCell sx={{ color: '#F19E38' }} align="left">
               Address
-            </TableCell>
+            </TableCell> */}
             <TableCell sx={{ color: '#F19E38' }} align="left">
               In Time
             </TableCell>
-            <TableCell sx={{ color: '#F19E38' }} align="left">
+            {/* <TableCell sx={{ color: '#F19E38' }} align="left">
               Logistics
-            </TableCell>
-            <TableCell sx={{ color: '#F19E38' }} align="left">
+            </TableCell> */}
+            {/* <TableCell sx={{ color: '#F19E38' }} align="left">
               Qty
-            </TableCell>
+            </TableCell> */}
             <TableCell sx={{ color: '#F19E38' }} align="left">
               Total Price
             </TableCell>
