@@ -128,7 +128,8 @@ function Row({ order, type }) {
                 </Typography>
 
                 <Button sx={booked} variant="contained">
-                  Booked
+                  Bookedy
+                  
                 </Button>
               </Stack>
               <Stack direction="row" justifyContent="space-between" alignItems="center" marginBottom="10px">
