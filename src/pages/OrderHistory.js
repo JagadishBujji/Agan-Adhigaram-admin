@@ -92,11 +92,11 @@ function Row({ order }) {
         <TableCell component="th" scope="row">
           {order.id}
         </TableCell>
-        <TableCell align="left">{order.userDetails.name}</TableCell>
-        <TableCell align="left">{order.userDetails.mobile}</TableCell>
-        <TableCell align="left">{`${order.userDetails.deliveryAddress.flatStreetName}, ${order.userDetails.deliveryAddress.landmark}, ${order.userDetails.deliveryAddress.deliveryArea}, ${order.userDetails.deliveryAddress.city} - ${order.userDetails.deliveryAddress.pincode}\n(${order.userDetails.deliveryAddress.mobileNo})`}</TableCell>
+        <TableCell align="left">{order.userDetail.name}</TableCell>
+        <TableCell align="left">{order.userDetail.phone}</TableCell>
+        <TableCell align="left">{`${order.userDetail.address}`}</TableCell>
         <TableCell align="left">
-          {order.timestamp.toDate().toLocaleString('en-IN', {
+          {new Date(order.ordered_timestamp).toLocaleString('en-IN', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -106,10 +106,10 @@ function Row({ order }) {
           })}
         </TableCell>
         <TableCell align="left" style={{ textTransform: 'capitalize' }}>
-          {order.type}
+          {order.logistics}
         </TableCell>
-        <TableCell align="left">{order.totalProducts}</TableCell>
-        <TableCell align="left">Rs. {order.price.totalPrice}</TableCell>
+        <TableCell align="left">{order.total_qty}</TableCell>
+        <TableCell align="left">Rs. {order.total_price}</TableCell>
         <TableCell align="left" style={{ textTransform: 'uppercase' }}>
           {order.status}
         </TableCell>
@@ -141,17 +141,10 @@ function Row({ order }) {
             >
               <Stack direction="row">
                 <Typography>
-                  {order.orderedProducts
-                    .map(
-                      (prod) =>
-                        `${prod.name} (${prod.quantity} ${prod.unit}) x ${prod.noOfItems} - Rs.${prod.totalPrice}`
-                    )
+                  {order.ordered_books
+                    .map((book) => `${book.title} x ${book.qty} - Rs.${book.total_price}`)
                     .join(' | ')}{' '}
-                  |{' '}
-                  <b>
-                    Delivery Fee: Rs.
-                    {order.type === 'superfast' ? order.price.superFastDeliveryCharge : order.price.deliveryCharge}
-                  </b>
+                  | <b>Delivery Fee: Rs. {order.delivery_charge}</b>
                 </Typography>
               </Stack>
             </Stack>
@@ -206,12 +199,12 @@ export default function OrderHistroy() {
     const ordersRef = collection(db, 'orders');
     const filteredQuery = query(
       ordersRef,
-      where('timestamp', '>=', startDate),
-      where('timestamp', '<=', endDate),
-      OB('timestamp', 'desc')
+      where('ordered_timestamp', '>=', startDate.getTime()),
+      where('ordered_timestamp', '<=', endDate.getTime()),
+      OB('ordered_timestamp', 'desc')
     );
 
-    console.log('date:', formattedDate, startDate, endDate);
+    console.log('date:', formattedDate, startDate.getTime(), endDate.getTime());
 
     getDocs(filteredQuery)
       .then((querySnapshot) => {
@@ -298,10 +291,10 @@ export default function OrderHistroy() {
   const exportOrders = () => {
     const formattedData = orders.map((order) => ({
       'Order Id': order.id,
-      Name: order.userDetails.name,
-      Phone: order.userDetails.mobile,
-      Address: `${order.userDetails.deliveryAddress.flatStreetName}, ${order.userDetails.deliveryAddress.landmark}, ${order.userDetails.deliveryAddress.deliveryArea}, ${order.userDetails.deliveryAddress.city} - ${order.userDetails.deliveryAddress.pincode}\n(${order.userDetails.deliveryAddress.mobileNo})`,
-      'Ordered DateTime': order.timestamp.toDate().toLocaleString('en-IN', {
+      Name: order.userDetail.name,
+      Phone: order.userDetail.phone,
+      Address: `${order.userDetail.address}`,
+      'Ordered DateTime': new Date(order.ordered_timestamp).toLocaleString('en-IN', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -309,16 +302,16 @@ export default function OrderHistroy() {
         minute: '2-digit',
         hour12: true,
       }),
-      Category: order.type,
-      Quantity: order.totalProducts,
-      'Total Price(+ delivery fee)': `Rs. ${order.price.totalPrice}`,
+      Logistics: order.logistics,
+      Quantity: order.total_qty,
+      'Total Price(+ delivery fee)': `Rs. ${order.total_price}`,
       Status: order.status,
-      'Ordered Products': order.orderedProducts
-        .map((prod) => `${prod.name} (${prod.quantity} ${prod.unit}) x ${prod.noOfItems} - Rs.${prod.totalPrice}`)
+      'Ordered Products': order.ordered_books
+        .map((book) => `${book.title} x ${book.qty} - Rs.${book.total_price}`)
         .join(' | '),
-      'Delivery Fee': order.type === 'superfast' ? order.price.superFastDeliveryCharge : order.price.deliveryCharge,
+      'Delivery Fee': order.delivery_charge,
       'Delivery Date': order.deliveredDate
-        ? order.deliveredDate.toDate().toLocaleString('en-IN', {
+        ? new Date(order.deliveredDate).toLocaleString('en-IN', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -327,9 +320,9 @@ export default function OrderHistroy() {
             hour12: true,
           })
         : '',
-      'Delivery Boy': `${order.deliveryBoyDetails.name} (${order.deliveryBoyDetails.mobile})`,
+      // 'Delivery Boy': `${order.deliveryBoyDetails.name} (${order.deliveryBoyDetails.mobile})`,
       'Cancel Date': order.cancelDate
-        ? order.cancelDate.toDate().toLocaleString('en-IN', {
+        ? new Date(order.cancelDate).toLocaleString('en-IN', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -354,7 +347,7 @@ export default function OrderHistroy() {
     const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
     const year = selectedDate.getFullYear().toString();
 
-    const formattedDate = `${month}/${day}/${year}`;
+    const formattedDate = `${day}/${month}/${year}`;
     saveAs(fileData, `${formattedDate}-orders.xlsx`);
   };
 
@@ -362,7 +355,9 @@ export default function OrderHistroy() {
 
   const filteredUsers = applySortFilter(orders, getComparator(order, orderBy), filterName);
 
-  const isNotFound = !filteredUsers.length && !!filterName;
+  // const isNotFound = !filteredUsers.length && !!filterName;
+
+  // console.log('isNotFound: ', isNotFound, filteredUsers.length);
 
   return (
     <>
@@ -417,7 +412,7 @@ export default function OrderHistroy() {
                       In Time
                     </TableCell>
                     <TableCell sx={{ color: '#F19E38' }} align="left">
-                      Category
+                      Logistics
                     </TableCell>
                     <TableCell sx={{ color: '#F19E38' }} align="left">
                       Qty
@@ -442,7 +437,7 @@ export default function OrderHistroy() {
                   )}
                 </TableBody>
 
-                {isNotFound && (
+                {filteredUsers.length <= 0 && (
                   <TableBody>
                     <TableRow>
                       <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
@@ -452,14 +447,14 @@ export default function OrderHistroy() {
                           }}
                         >
                           <Typography variant="h6" paragraph>
-                            Not found
+                            No Orders
                           </Typography>
 
-                          <Typography variant="body2">
+                          {/* <Typography variant="body2">
                             No results found for &nbsp;
                             <strong>&quot;{filterName}&quot;</strong>.
                             <br /> Try checking for typos or using complete words.
-                          </Typography>
+                          </Typography> */}
                         </Paper>
                       </TableCell>
                     </TableRow>

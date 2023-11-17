@@ -98,9 +98,9 @@ function Row({ order, type }) {
                 </Typography>
               </Stack>
               <Box>
-                {type === 'booked' ? (
+                {order.status === 'booked' ? (
                   <DeliveryModal orderId={order.id} />
-                ) : type === 'inProgress' ? (
+                ) : order.status === 'dispatched' ? (
                   <Button
                     variant="contained"
                     sx={{ backgroundColor: '#F19E38', color: '#fff' }}
@@ -140,7 +140,7 @@ export default function OrderTable({ orders, type }) {
               In Time
             </TableCell>
             <TableCell sx={{ color: '#F19E38' }} align="left">
-              Category
+              Logistics
             </TableCell>
             <TableCell sx={{ color: '#F19E38' }} align="left">
               Qty

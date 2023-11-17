@@ -84,7 +84,7 @@ export default function DeliveryModal({ orderId }) {
           },
         }}
       >
-        In-progress
+        Dispatched
       </Button>
       <Modal
         open={open}
