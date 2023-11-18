@@ -142,7 +142,7 @@ export default function OrderTab() {
         <OrderTable orders={orders.booked} type="booked" />
       </TabPanel>
       <TabPanel value={value} index={2}>
-        <OrderTable orders={orders.inProgress} type="inProgress" />
+        <OrderTable orders={orders.inProgress} type="dispatched" />
       </TabPanel>
       <TabPanel value={value} index={3}>
         <OrderTable orders={orders.delivered} type="delivered" />

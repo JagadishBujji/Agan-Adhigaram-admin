@@ -1,6 +1,5 @@
-import * as React from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { db } from '../../services/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import Box from '@mui/material/Box';
 import Collapse from '@mui/material/Collapse';
@@ -9,7 +8,7 @@ import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
-import DeliveryModal from '../Modal/DeliveryModal';
+import ModalTwoInputs from '../Modal/ModalTwoInputs';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
@@ -17,12 +16,13 @@ import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { Button, Card, Stack } from '@mui/material';
+import { db } from '../../services/firebase';
 import classes from './OrderTable.module.css';
 
 function Row({ order, type }) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
 
-  const handleDelivery = () => {
+  const updateStatus1 = () => {
     const confirmation = window.confirm('Do you want to change the status from In-Progress to Delivered?');
     if (confirmation) {
       const deliveredDetails = doc(db, 'orders', order.id);
@@ -37,40 +37,59 @@ function Row({ order, type }) {
     }
   };
 
-  const TAX_RATE = 0.07;
+  const updateStatus2 = () => {
+    const confirmation = window.confirm('Do you want to change the status from In-Progress to Delivered?');
+    if (confirmation) {
+      const deliveredDetails = doc(db, 'orders', order.id);
+      updateDoc(deliveredDetails, {
+        deliveredDate: new Date(),
+        status: 'delivered',
+      })
+        .then(() => {
+          alert('Successfully updated');
+        })
+        .catch((err) => console.log(err));
+    }
+  };
+
+  const updateStatus = (data, status) => {
+    console.log('data: ', data);
+    const orderDetail = doc(db, 'orders', order.id);
+    let updatedData = {
+      status,
+    };
+    if (data.input1 || data.input2) {
+      updatedData.logistics = {
+        name: data.input1,
+        number: data.input2,
+      };
+    }
+    updateDoc(orderDetail, updatedData)
+      .then(() => {
+        alert('Successfully updated');
+        console.log('Successfully updated');
+      })
+      .catch((e) => console.log(e));
+  };
 
   function ccyFormat(num) {
     return `${num.toFixed(2)}`;
   }
 
-  function priceRow(qty, unit) {
-    return qty * unit;
-  }
-
-  function createRow(desc, qty, unit) {
-    const price = priceRow(qty, unit);
-    return { desc, qty, unit, price };
-  }
-
-  function subtotal(items) {
-    return items.map(({ price }) => price).reduce((sum, i) => sum + i, 0);
-  }
-
-  const rows = [
-    createRow('Paperclips (Box)', 100, 1.15),
-    createRow('Paper (Case)', 10, 45.99),
-    createRow('Waste Basket', 2, 17.99),
-  ];
-
-  const invoiceSubtotal = subtotal(rows);
-  const invoiceTaxes = TAX_RATE * invoiceSubtotal;
-  const invoiceTotal = invoiceTaxes + invoiceSubtotal;
-
-  const booked = {
+  const dispatched = {
     background: '#F19E38',
     color: '#fff',
     '&:hover': {
       background: '#F19E38',
+      color: '#fff',
+    },
+  };
+
+  const delivered = {
+    background: '#50C878',
+    color: '#fff',
+    '&:hover': {
+      background: '#50C878',
       color: '#fff',
     },
   };
@@ -127,22 +146,35 @@ function Row({ order, type }) {
                   Order Detail
                 </Typography>
 
-                <Button sx={booked} variant="contained">
-                  Bookedy
-                  
-                </Button>
+                {order.status === 'booked' ? (
+                  <ModalTwoInputs
+                    title="Logistics Details"
+                    btnTitle="Dispatched"
+                    label1="Logistic Name (optional)"
+                    label2="Logistic Number (Tracking No.) (optional)"
+                    handleSubmit={(inputs) => {
+                      updateStatus(inputs, 'dispatched');
+                    }}
+                  />
+                ) : order.status === 'dispatched' ? (
+                  <Button sx={delivered} variant="contained" onClick={() => updateStatus(null, 'delivered')}>
+                    Delivered
+                  </Button>
+                ) : null}
               </Stack>
               <Stack direction="row" justifyContent="space-between" alignItems="center" marginBottom="10px">
-                <Card sx={{padding: "10px", mb: 1, width: "100%"}}>
+                <Card sx={{ padding: '10px', mb: 1, width: '100%' }}>
                   <Typography>
-                    <b className={classes.addres}>Address :</b><span>103, 4th street, krs nagar, katpadi - 632007</span>
+                    <b className={classes.addres}>Address :</b>
+                    <span>{order.userDetail.address}</span>
                   </Typography>
                   <Typography>
-                    <b className={classes.addres}>logistics :</b>
-                    <span>103, 4th street, krs nagar, katpadi - 632007</span>
+                    <b className={classes.addres}>Logistics :</b>
+                    <span>{order.logistics ? `${order.logistics.name}-${order.logistics.number}` : 'NIL'}</span>
                   </Typography>
                   <Typography>
-                    <b className={classes.addres}>Qty :</b><span>103, 4th street, krs nagar, katpadi - 632007</span>
+                    <b className={classes.addres}>Total Quantity :</b>
+                    <span>{order.total_qty}</span>
                   </Typography>
                 </Card>
               </Stack>
@@ -178,42 +210,26 @@ function Row({ order, type }) {
                     <TableCell rowSpan={4} />
                     <TableCell rowSpan={4} />
                     <TableCell colSpan={2}>Subtotal</TableCell>
-                    <TableCell align="right">{ccyFormat(invoiceSubtotal)}</TableCell>
+                    <TableCell align="right">{ccyFormat(order.total_item_price)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Tax</TableCell>
-                    <TableCell align="right">{`${(TAX_RATE * 100).toFixed(0)} %`}</TableCell>
-                    <TableCell align="right">{ccyFormat(invoiceTaxes)}</TableCell>
+                    <TableCell align="right">{`${order.tax_percentage} %`}</TableCell>
+                    <TableCell align="right">{ccyFormat(order.price_tax)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Delivery charge</TableCell>
                     <TableCell align="right"></TableCell>
-                    <TableCell align="right">100</TableCell>
+                    <TableCell align="right">{order.delivery_charge}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell colSpan={2}>Total</TableCell>
-                    <TableCell align="right">{ccyFormat(invoiceTotal)}</TableCell>
+                    <TableCell align="right">{ccyFormat(order.total_price)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </Box>
-            {/* <Typography variant="h6" gutterBottom component="div">
-              Products Ordered~
-            </Typography>
-            <Stack
-              sx={{ margin: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-              direction="row"
-            >
-              <Stack direction="row">
-                <Typography>
-                  {order.ordered_books
-                    .map((book) => `${book.title} x ${book.qty} - Rs.${book.total_price}`)
-                    .join(' | ')}{' '}
-                  | <b>Delivery Fee: Rs. {order.delivery_charge}</b>
-                </Typography>
-              </Stack>
-              <Box>
-                {order.status === 'booked' ? (
+            {/* {order.status === 'booked' ? (
                   <DeliveryModal orderId={order.id} />
                 ) : order.status === 'dispatched' ? (
                   <Button
@@ -225,9 +241,7 @@ function Row({ order, type }) {
                   </Button>
                 ) : (
                   ''
-                )}
-              </Box>
-            </Stack> */}
+                )} */}
           </Collapse>
         </TableCell>
       </TableRow>

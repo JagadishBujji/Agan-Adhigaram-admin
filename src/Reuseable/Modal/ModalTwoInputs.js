@@ -1,11 +1,9 @@
-import * as React from 'react';
 import Box from '@mui/material/Box';
-import { db } from '../../services/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import { Divider, Grid, Stack, TextField } from '@mui/material';
+import { useState } from 'react';
 
 const style = {
   position: 'absolute',
@@ -41,34 +39,22 @@ const cancel = {
   },
 };
 
-export default function DeliveryModal({ orderId }) {
-  const [open, setOpen] = React.useState(false);
+export default function ModalTwoInputs({ title, btnTitle, label1, label2, handleSubmit }) {
+  const [input1, setInput1] = useState('');
+  const [input2, setInput2] = useState('');
+  const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-  const [deliveryName, setDeliveryName] = React.useState('');
-  const [phoneNumber, setPhoneNumber] = React.useState();
-  const handleName = (e) => {
-    setDeliveryName(e.target.value);
-  };
-  const handlePhone = (e) => {
-    setPhoneNumber(e.target.value);
+  const handleClose = () => {
+    setOpen(false);
+    setInput1('');
+    setInput2('');
   };
 
-  const handleSubmit = (e) => {
+  const submitHandler = (e) => {
     e.preventDefault();
-    const orderDetails = doc(db, 'orders', orderId);
-    updateDoc(orderDetails, {
-      deliveryBoyDetails: {
-        mobile: phoneNumber,
-        name: deliveryName,
-      },
-      status: 'inProgress',
-    })
-      .then(() => {
-        alert('Successfully updated');
-      })
-      .catch((e) => console.log(e));
+    handleSubmit({ input1, input2 });
   };
+
   return (
     <div>
       <Button
@@ -84,7 +70,7 @@ export default function DeliveryModal({ orderId }) {
           },
         }}
       >
-        Dispatched
+        {btnTitle}
       </Button>
       <Modal
         open={open}
@@ -94,7 +80,7 @@ export default function DeliveryModal({ orderId }) {
       >
         <Box sx={style}>
           <Typography id="modal-modal-title" variant="h6" component="h2">
-            Delivery person details
+            {title}
           </Typography>
 
           <Divider />
@@ -103,24 +89,24 @@ export default function DeliveryModal({ orderId }) {
               <TextField
                 fullWidth
                 id="outlined-basic"
-                label="Delivery Name"
+                label={label1}
                 variant="outlined"
-                name="name"
+                name="input1"
                 type="text"
-                value={deliveryName}
-                onChange={handleName}
+                value={input1}
+                onChange={(e) => setInput1(e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sx={{ my: 1 }}>
               <TextField
                 fullWidth
                 id="outlined-basic"
-                label="Delivery Phone"
+                label={label2}
                 variant="outlined"
-                name="deliveryMsg"
-                type="tel"
-                value={phoneNumber}
-                onChange={handlePhone}
+                name="input2"
+                type="text"
+                value={input2}
+                onChange={(e) => setInput2(e.target.value)}
               />
             </Grid>
           </Grid>
@@ -130,10 +116,10 @@ export default function DeliveryModal({ orderId }) {
             direction="row"
             sx={{ display: 'flex', justifyContent: 'end', alignItems: 'center', mt: 2 }}
           >
-            <Button sx={save} variant="contained" onClick={handleSubmit}>
+            <Button sx={save} variant="contained" onClick={submitHandler}>
               Save
             </Button>
-            <Button sx={cancel} variant="outlined">
+            <Button sx={cancel} variant="outlined" onClick={handleClose}>
               Cancel
             </Button>
           </Stack>
