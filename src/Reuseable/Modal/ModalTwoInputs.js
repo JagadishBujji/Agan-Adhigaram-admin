@@ -52,7 +52,7 @@ export default function ModalTwoInputs({ title, btnTitle, label1, label2, handle
 
   const submitHandler = (e) => {
     e.preventDefault();
-    handleSubmit({ input1, input2 });
+    handleSubmit({ input1, input2 }, () => handleClose());
   };
 
   return (

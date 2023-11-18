@@ -19,7 +19,7 @@ import { Button, Card, Stack } from '@mui/material';
 import { db } from '../../services/firebase';
 import classes from './OrderTable.module.css';
 
-function Row({ order, type }) {
+function Row({ order, type, updateOrders }) {
   const [open, setOpen] = useState(false);
 
   const updateStatus1 = () => {
@@ -52,24 +52,30 @@ function Row({ order, type }) {
     }
   };
 
-  const updateStatus = (data, status) => {
-    console.log('data: ', data);
-    const orderDetail = doc(db, 'orders', order.id);
-    let updatedData = {
-      status,
-    };
-    if (data.input1 || data.input2) {
-      updatedData.logistics = {
-        name: data.input1,
-        number: data.input2,
+  const updateStatus = (data, status, closeModal) => {
+    const confirmation = window.confirm('Are you sure to proceed?');
+    if (confirmation) {
+      // console.log('data: ', data);
+      const orderDetail = doc(db, 'orders', order.id);
+      let updatedData = {
+        status,
       };
+      if (data && (data.input1 || data.input2)) {
+        updatedData.logistics = {
+          name: data.input1,
+          number: data.input2,
+        };
+      }
+      updateDoc(orderDetail, updatedData)
+        .then(() => {
+          alert('Successfully updated');
+          updateOrders(order.id, updatedData);
+          if (status !== 'delivered') {
+            closeModal();
+          }
+        })
+        .catch((e) => console.log(e));
     }
-    updateDoc(orderDetail, updatedData)
-      .then(() => {
-        alert('Successfully updated');
-        console.log('Successfully updated');
-      })
-      .catch((e) => console.log(e));
   };
 
   function ccyFormat(num) {
@@ -152,8 +158,8 @@ function Row({ order, type }) {
                     btnTitle="Dispatched"
                     label1="Logistic Name (optional)"
                     label2="Logistic Number (Tracking No.) (optional)"
-                    handleSubmit={(inputs) => {
-                      updateStatus(inputs, 'dispatched');
+                    handleSubmit={(inputs, closeModal) => {
+                      updateStatus(inputs, 'dispatched', closeModal);
                     }}
                   />
                 ) : order.status === 'dispatched' ? (
@@ -249,7 +255,7 @@ function Row({ order, type }) {
   );
 }
 
-export default function OrderTable({ orders, type }) {
+export default function OrderTable({ orders, type, updateOrders }) {
   return (
     <TableContainer component={Paper}>
       <Table aria-label="collapsible table" sx={{ minWidth: 800 }}>
@@ -283,7 +289,10 @@ export default function OrderTable({ orders, type }) {
             <TableCell />
           </TableRow>
         </TableHead>
-        <TableBody>{orders && orders?.map((order) => <Row key={order.id} order={order} type={type} />)}</TableBody>
+        <TableBody>
+          {orders &&
+            orders?.map((order) => <Row key={order.id} order={order} type={type} updateOrders={updateOrders} />)}
+        </TableBody>
       </Table>
     </TableContainer>
   );

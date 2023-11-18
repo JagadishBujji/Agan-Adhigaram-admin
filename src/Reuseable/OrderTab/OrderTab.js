@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, query } from 'firebase/firestore';
+import { useDispatch, useSelector } from 'react-redux';
+import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
 
 import PropTypes from 'prop-types';
 import Tabs from '@mui/material/Tabs';
@@ -9,6 +10,7 @@ import Box from '@mui/material/Box';
 import OrderTable from './OrderTable';
 
 import { db } from '../../services/firebase';
+import { setOrders, selectOrders } from '../../store/orderSlice';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -44,20 +46,23 @@ function a11yProps(index) {
 }
 
 export default function OrderTab() {
+  const dispatch = useDispatch();
+  const { orders } = useSelector(selectOrders);
   const [value, setValue] = useState(0);
-
-  const [orders, setOrders] = useState({
-    all: [],
-    booked: [],
-    dispatched: [],
-    delivered: [],
-    cancelled: [],
-  });
 
   useEffect(() => {
     const getData = async () => {
-      console.log('getData');
-      const q = query(collection(db, 'orders'));
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      thirtyDaysAgo.setHours(0, 0, 0, 0);
+
+      const thirtyDaysAgoTimestamp = thirtyDaysAgo.getTime();
+
+      const q = query(
+        collection(db, 'orders'),
+        where('ordered_timestamp', '>=', thirtyDaysAgoTimestamp),
+        orderBy('ordered_timestamp', 'desc')
+      );
 
       const querySnapshot = await getDocs(q);
 
@@ -68,8 +73,6 @@ export default function OrderTab() {
         delivered: [],
         cancelled: [],
       };
-
-      console.log('getData1', orderList);
 
       querySnapshot.forEach((doc) => {
         const newData = {
@@ -89,12 +92,45 @@ export default function OrderTab() {
         }
       });
 
-      console.log('getData2', orderList);
-      setOrders(orderList);
+      // console.log('getData: ', orderList);
+      dispatch(setOrders(orderList));
     };
 
     getData();
   }, []);
+
+  const updateOrders = (id, updatedData) => {
+    const allOrders = [...orders.all];
+    const index = allOrders.findIndex((order) => order.id === id);
+
+    allOrders[index] = {
+      ...allOrders[index],
+      ...updatedData,
+    };
+
+    const orderList = {
+      all: [],
+      booked: [],
+      dispatched: [],
+      delivered: [],
+      cancelled: [],
+    };
+
+    allOrders.forEach((data) => {
+      orderList.all.push(data);
+      if (data.status === 'booked') {
+        orderList.booked.push(data);
+      } else if (data.status === 'dispatched') {
+        orderList.dispatched.push(data);
+      } else if (data.status === 'delivered') {
+        orderList.delivered.push(data);
+      } else if (data.status === 'cancelled') {
+        orderList.cancelled.push(data);
+      }
+    });
+
+    setOrders(orderList);
+  };
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -136,19 +172,19 @@ export default function OrderTab() {
         </Tabs>
       </Box>
       <TabPanel value={value} index={0}>
-        <OrderTable orders={orders.all} type="all" />
+        <OrderTable orders={orders.all} type="all" updateOrders={updateOrders} />
       </TabPanel>
       <TabPanel value={value} index={1}>
-        <OrderTable orders={orders.booked} type="booked" />
+        <OrderTable orders={orders.booked} type="booked" updateOrders={updateOrders} />
       </TabPanel>
       <TabPanel value={value} index={2}>
-        <OrderTable orders={orders.inProgress} type="dispatched" />
+        <OrderTable orders={orders.dispatched} type="dispatched" updateOrders={updateOrders} />
       </TabPanel>
       <TabPanel value={value} index={3}>
-        <OrderTable orders={orders.delivered} type="delivered" />
+        <OrderTable orders={orders.delivered} type="delivered" updateOrders={updateOrders} />
       </TabPanel>
       <TabPanel value={value} index={4}>
-        <OrderTable orders={orders.cancelled} type="cancelled" />
+        <OrderTable orders={orders.cancelled} type="cancelled" updateOrders={updateOrders} />
       </TabPanel>
     </Box>
   );
