@@ -19,6 +19,8 @@ import { areArraysEqual, isNumeric, isValidName } from '../../utils/validation';
 import BasicSelect from '../Select/Select';
 import { Publish } from '@mui/icons-material';
 import { errorNotification } from 'src/utils/notification';
+import Upload from '../Settings/Upload';
+import UploadedImage from './UploadedImage';
 
 const style = {
   position: 'absolute',
@@ -392,7 +394,9 @@ export default function CategoriesModal({ categories, setCategories, open, close
                 <Grid container spacing={2}>
                   <Typography variant="h4">Book Details</Typography>
                   <Grid item xs={12}>
-                    <CategoryUpload onChangeHandler={onChangeHandler} category={category} type="category" />
+                    {/* <CategoryUpload onChangeHandler={onChangeHandler} category={category} type="category" /> */}
+                    {/* <Upload/> */}
+                    <UploadedImage/>
                   </Grid>
                   <Grid item xs={6}>
                     <BasicSelect

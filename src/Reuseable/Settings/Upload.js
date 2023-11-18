@@ -41,11 +41,11 @@ const Upload = ({ closeModal, addNewBanner }) => {
       <Stack>
         <Button
           sx={{
-            background: '#9F3239',
+            background: '#f19e38',
             color: '#fff',
             transition: '1s',
             '&: hover': {
-              background: '#9F3239',
+              background: '#f19e38',
               color: '#fff',
               transition: '1s',
             },
@@ -60,11 +60,11 @@ const Upload = ({ closeModal, addNewBanner }) => {
       <Stack direction="row" spacing={2} sx={{ display: 'flex', justifyContent: 'end', alignItems: 'center', mt: 2 }}>
         <Button
           sx={{
-            background: '#9F3239',
+            background: '#f19e38',
             color: '#fff',
             transition: '1s',
             '&: hover': {
-              background: '#9F3239',
+              background: '#f19e38',
               color: '#fff',
               transition: '1s',
             },
@@ -80,12 +80,12 @@ const Upload = ({ closeModal, addNewBanner }) => {
           onClick={closeModal}
           sx={{
             marginTop: '10px',
-            border: '1px solid #9F3239',
-            color: '#9F3239',
+            border: '1px solid #f19e38',
+            color: '#f19e38',
             background: 'transparent',
             '&: hover': {
-              border: '1px solid #9F3239',
-              color: '#9F3239',
+              border: '1px solid #f19e38',
+              color: '#f19e38',
               background: 'transparent',
             },
           }}
