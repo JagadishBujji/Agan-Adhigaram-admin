@@ -72,7 +72,7 @@ export default function Router() {
         { path: 'app', element: <DashboardAppPage /> },
         // { path: 'orders', element: <OrdersPage /> },
         { path: 'order-histroy', element: <OrderHistory /> },
-        { path: 'categories', element: <CategoriesPage /> },
+        { path: 'book-management', element: <CategoriesPage /> },
         { path: 'categories/:id/products', element: <Products /> },
         // { path: 'districts', element: <District /> },
         // { path: 'blog', element: <BlogPage /> },

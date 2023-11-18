@@ -13,7 +13,7 @@ const navConfig = [
   },
   {
     title: 'Book Management',
-    path: '/dashboard/categories',
+    path: '/dashboard/book-management',
     icon: icon('ic_cart'),
   },
   // {

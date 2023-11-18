@@ -19,12 +19,12 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [categoryData, setCategoryData] = useState(null);
-  const [book,setBook]=useState()
-  
-  const getBook=(book)=>{
+  const [book, setBook] = useState();
+
+  const getBook = (book) => {
     setBook(book);
-  }
-  console.log("getbook",book)
+  };
+  console.log('getbook', book);
 
   const handleModal = () => {
     setShowModal(true);
@@ -42,37 +42,21 @@ export default function CategoriesPage() {
   };
 
   useEffect(() => {
+    const getCategories = () => {
+      const booksRef = collection(db, 'books');
+      getDocs(booksRef)
+        .then((snapshot) => {
+          const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+          setCategories(docs);
+        })
+        .catch((error) => {
+          console.log('Error getting categories:', error);
+        });
+    };
+
     getCategories();
   }, []);
-
-  // const getCategories = () => {
-  //   const booksRef = collection(db, 'categries');
-  //   const q = query(categoriesRef, orderBy('orderNo'));
-  //   getDocs(booksRef)
-  //     .then((snapshot) => {
-  //       const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-  //       console.log('getCategories:', docs);
-  //       setCategories(docs);
-  //     })
-  //     .catch((error) => {
-  //       console.log('Error getting categories:', error);
-  //     });
-  // };
-
-  const getCategories = () => {
-    const booksRef = collection(db, 'books');
-    // const q = query(categoriesRef, orderBy('orderNo'));
-    getDocs(booksRef)
-      .then((snapshot) => {
-        const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
-        setCategories(docs);
-      })
-      .catch((error) => {
-        console.log('Error getting categories:', error);
-      });
-  };
-  console.log('getCategories:', categories);
 
   return (
     <>
@@ -112,7 +96,7 @@ export default function CategoriesPage() {
 
         {/* <ProductList products={PRODUCTS} /> */}
         <CategoryList categories={categories} setShowModal={setShowModal} getBook={getBook} showModal={showModal} />
-       
+
         {/* <ProductCartWidget /> */}
       </Container>
     </>
