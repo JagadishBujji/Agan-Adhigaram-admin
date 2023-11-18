@@ -22,36 +22,6 @@ import classes from './OrderTable.module.css';
 function Row({ order, type, updateOrders }) {
   const [open, setOpen] = useState(false);
 
-  const updateStatus1 = () => {
-    const confirmation = window.confirm('Do you want to change the status from In-Progress to Delivered?');
-    if (confirmation) {
-      const deliveredDetails = doc(db, 'orders', order.id);
-      updateDoc(deliveredDetails, {
-        deliveredDate: new Date(),
-        status: 'delivered',
-      })
-        .then(() => {
-          alert('Successfully updated');
-        })
-        .catch((err) => console.log(err));
-    }
-  };
-
-  const updateStatus2 = () => {
-    const confirmation = window.confirm('Do you want to change the status from In-Progress to Delivered?');
-    if (confirmation) {
-      const deliveredDetails = doc(db, 'orders', order.id);
-      updateDoc(deliveredDetails, {
-        deliveredDate: new Date(),
-        status: 'delivered',
-      })
-        .then(() => {
-          alert('Successfully updated');
-        })
-        .catch((err) => console.log(err));
-    }
-  };
-
   const updateStatus = (data, status, closeModal) => {
     const confirmation = window.confirm('Are you sure to proceed?');
     if (confirmation) {

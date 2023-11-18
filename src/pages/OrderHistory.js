@@ -25,6 +25,7 @@ import {
   TablePagination,
   TableHead,
   Collapse,
+  Box,
 } from '@mui/material';
 import OrderTabs from 'src/Reuseable/OrderTab/OrderTabs';
 // components
@@ -39,7 +40,8 @@ import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 import USERLIST from '../_mock/user';
 import OrderTable from 'src/Reuseable/OrderTab/OrderTable';
 import { collection, getDocs, query, where, orderBy as OB } from 'firebase/firestore';
-import { db } from 'src/services/firebase';
+import { db } from '../services/firebase';
+import classes from './OrderHistory.module.css';
 
 // ----------------------------------------------------------------------
 
@@ -86,6 +88,10 @@ function applySortFilter(array, comparator, query) {
 function Row({ order }) {
   const [open, setOpen] = useState(false);
 
+  function ccyFormat(num) {
+    return `${num.toFixed(2)}`;
+  }
+
   return (
     <>
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -106,7 +112,7 @@ function Row({ order }) {
           })}
         </TableCell>
         <TableCell align="left" style={{ textTransform: 'capitalize' }}>
-          {order.logistics}
+          {order.logistics ? `${order.logistics.name}-${order.logistics.number}` : 'NIL'}
         </TableCell>
         <TableCell align="left">{order.total_qty}</TableCell>
         <TableCell align="left">Rs. {order.total_price}</TableCell>
@@ -132,22 +138,79 @@ function Row({ order }) {
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={12}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <Typography variant="h6" gutterBottom component="div">
-              Products Ordered
-            </Typography>
-            <Stack
-              sx={{ margin: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-              direction="row"
-            >
-              <Stack direction="row">
-                <Typography>
-                  {order.ordered_books
-                    .map((book) => `${book.title} x ${book.qty} - Rs.${book.total_price}`)
-                    .join(' | ')}{' '}
-                  | <b>Delivery Fee: Rs. {order.delivery_charge}</b>
+            <Box sx={{ margin: 1 }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" marginBottom="10px">
+                <Typography variant="h6" gutterBottom component="div">
+                  Order Detail
                 </Typography>
               </Stack>
-            </Stack>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" marginBottom="10px">
+                <Card sx={{ padding: '10px', mb: 1, width: '100%' }}>
+                  <Typography>
+                    <b className={classes.addres}>Address :</b>
+                    <span>{order.userDetail.address}</span>
+                  </Typography>
+                  <Typography>
+                    <b className={classes.addres}>Logistics :</b>
+                    <span>{order.logistics ? `${order.logistics.name}-${order.logistics.number}` : 'NIL'}</span>
+                  </Typography>
+                  <Typography>
+                    <b className={classes.addres}>Total Quantity :</b>
+                    <span>{order.total_qty}</span>
+                  </Typography>
+                </Card>
+              </Stack>
+              <Table size="medium" aria-label="purchases">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Title</TableCell>
+                    <TableCell>Genre</TableCell>
+                    <TableCell align="right">Author</TableCell>
+                    <TableCell align="right">Book Format</TableCell>
+                    <TableCell align="right">Price</TableCell>
+                    <TableCell align="right">Quantity</TableCell>
+                    <TableCell align="right">Total Price</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {order.ordered_books.map((book) => (
+                    <TableRow key={book.id}>
+                      <TableCell component="th" scope="row">
+                        {book.title}
+                      </TableCell>
+                      <TableCell>{book.genre}</TableCell>
+                      <TableCell align="right">{book.author}</TableCell>
+                      <TableCell align="right">{book.book_format}</TableCell>
+                      <TableCell align="right">{book.item_price}</TableCell>
+                      <TableCell align="right">{book.qty}</TableCell>
+                      <TableCell align="right">{book.total_price}</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TableCell rowSpan={4} />
+                    <TableCell rowSpan={4} />
+                    <TableCell rowSpan={4} />
+                    <TableCell rowSpan={4} />
+                    <TableCell colSpan={2}>Subtotal</TableCell>
+                    <TableCell align="right">{ccyFormat(order.total_item_price)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Tax</TableCell>
+                    <TableCell align="right">{`${order.tax_percentage} %`}</TableCell>
+                    <TableCell align="right">{ccyFormat(order.price_tax)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Delivery charge</TableCell>
+                    <TableCell align="right"></TableCell>
+                    <TableCell align="right">{order.delivery_charge}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={2}>Total</TableCell>
+                    <TableCell align="right">{ccyFormat(order.total_price)}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </Box>
           </Collapse>
         </TableCell>
       </TableRow>
