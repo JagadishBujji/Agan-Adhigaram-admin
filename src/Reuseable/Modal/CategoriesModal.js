@@ -301,16 +301,16 @@ export default function CategoriesModal({ categories, setCategories, open, close
 
   const handlePublish = async () => {
     const bookRef = doc(db, 'books', book.id);
-    const date=new Date(category.date_published)
-    const day=date.getDate()
-    const month=date.getMonth()+1;
-    const year=date.getFullYear()
+    const date = new Date(category.date_published);
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
 
-    const formatedDate=`${day.toString().padStart(2,'0')}-${month.toString().padStart(2, '0')}-${year}`
+    const formatedDate = `${day.toString().padStart(2, '0')}-${month.toString().padStart(2, '0')}-${year}`;
     const temp = {
       author: category.author,
       book_format: category.book_format,
-      date_published: {formatedDate},
+      date_published: { formatedDate },
       description: category.description,
       genre: category.genre,
       illustrator: category.illustrator,
@@ -336,8 +336,8 @@ export default function CategoriesModal({ categories, setCategories, open, close
     setIsChecked(false);
     getBook(null);
   };
-  const handleSaveDraft= async ()=>{
-   const docRef= await addDoc(collection(db, 'books'), {
+  const handleSaveDraft = async () => {
+    const docRef = await addDoc(collection(db, 'books'), {
       amazon_link: '',
       author: category.author,
       book_format: category.book_format,
@@ -365,18 +365,24 @@ export default function CategoriesModal({ categories, setCategories, open, close
       stock: category.stock,
       title: category.title,
       is_available: isChecked,
-    }); 
+    });
     handleClose();
-  }
+  };
 
-  const saveHandler =  () => {
-    !isNumeric(category.pages) ? errorNotification("Invalid Pages"):
-      !isNumeric(category.stock) ?errorNotification("Invalid stocks"):
-      !isNumeric(category.mrp_price) ?errorNotification("Invalid Price"):
-      !isValidName(category.author) ?errorNotification("Invalid Author Name"):
-      !isValidName(category.illustrator) ? errorNotification("Invalid Illustrator Name"):
-      !isValidName(category.language) ?  errorNotification("Invalid Language"): handleSaveDraft()
-    
+  const saveHandler = () => {
+    !isNumeric(category.pages)
+      ? errorNotification('Invalid Pages')
+      : !isNumeric(category.stock)
+      ? errorNotification('Invalid stocks')
+      : !isNumeric(category.mrp_price)
+      ? errorNotification('Invalid Price')
+      : !isValidName(category.author)
+      ? errorNotification('Invalid Author Name')
+      : !isValidName(category.illustrator)
+      ? errorNotification('Invalid Illustrator Name')
+      : !isValidName(category.language)
+      ? errorNotification('Invalid Language')
+      : handleSaveDraft();
   };
 
   return (

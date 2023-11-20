@@ -129,7 +129,7 @@ export default function OrderTab() {
       }
     });
 
-    setOrders(orderList);
+    dispatch(setOrders(orderList));
   };
 
   const handleChange = (event, newValue) => {
