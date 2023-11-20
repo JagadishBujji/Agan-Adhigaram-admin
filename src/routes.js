@@ -9,7 +9,7 @@ import LoginPage from './pages/LoginPage';
 import Page404 from './pages/Page404';
 import DashboardAppPage from './pages/DashboardAppPage';
 import SettingPage from './pages/SettingPage';
-import CategoriesPage from './pages/CategoriesPage';
+import BookManagement from './pages/BookManagement';
 import Products from './pages/Products';
 import District from './pages/District';
 import { useContext, useEffect, useState } from 'react';
@@ -72,8 +72,8 @@ export default function Router() {
         { path: 'app', element: <DashboardAppPage /> },
         // { path: 'orders', element: <OrdersPage /> },
         { path: 'order-histroy', element: <OrderHistory /> },
-        { path: 'book-management', element: <CategoriesPage /> },
-        { path: 'categories/:id/products', element: <Products /> },
+        { path: 'book-management', element: <BookManagement /> },
+        // { path: 'categories/:id/products', element: <Products /> },
         // { path: 'districts', element: <District /> },
         // { path: 'blog', element: <BlogPage /> },
         // { path: 'settings', element: <SettingPage /> },

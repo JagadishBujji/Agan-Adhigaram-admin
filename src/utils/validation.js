@@ -37,9 +37,14 @@ function isValidPassword(password) {
 function isValidName(name) {
   const nameRegex = /^[A-Za-z\s'-]+$/;
 
-  return nameRegex.test(name);
+  return name && name.trim() !== '' && nameRegex.test(name);
 }
 
-export { isValidEmail, isValidPassword,isValidName };
+function isValidDate(date) {
+  const dateObj = new Date(date);
+  return !isNaN(dateObj.getTime());
+}
+
+export { isValidEmail, isValidPassword, isValidName, isValidDate };
 
 export { isNumeric, areArraysEqual, validatePincode };

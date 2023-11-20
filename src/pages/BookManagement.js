@@ -5,58 +5,61 @@ import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 // @mui
 import { Container, Stack, Typography } from '@mui/material';
 // components
-import { CategorySort, CategoryList, CategoryCartWidget, CategoryFilterSidebar } from '../sections/@dashboard/products';
+import { BookList } from '../sections/@dashboard/products';
 // mock
-import PRODUCTS from '../_mock/products';
+// import PRODUCTS from '../_mock/products';
 import classes from './CategoriesPage.module.css';
 import { db } from '../services/firebase';
-import CategoriesModal from '../Reuseable/Modal/CategoriesModal';
+import BookModal from '../Reuseable/Modal/BookModal';
 
 // ----------------------------------------------------------------------
 
-export default function CategoriesPage() {
-  const [openFilter, setOpenFilter] = useState(false);
-  const [categories, setCategories] = useState([]);
+export default function BookManagement() {
+  // const [openFilter, setOpenFilter] = useState(false);
+  const [book, setBook] = useState(null);
+  const [books, setBooks] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [categoryData, setCategoryData] = useState(null);
-  const [book, setBook] = useState();
 
-  const getBook = (book) => {
+  const setBookHandler = (book) => {
     setBook(book);
   };
-  console.log('getbook', book);
 
-  const handleModal = () => {
+  const openModal = () => {
     setShowModal(true);
   };
+
   const closeModal = () => {
     setShowModal(false);
-    setCategoryData(null);
+    setBook(null);
   };
-  const handleOpenFilter = () => {
-    setOpenFilter(true);
-  };
+  // const handleOpenFilter = () => {
+  //   setOpenFilter(true);
+  // };
 
-  const handleCloseFilter = () => {
-    setOpenFilter(false);
-  };
+  // const handleCloseFilter = () => {
+  //   setOpenFilter(false);
+  // };
 
   useEffect(() => {
-    const getCategories = () => {
+    const getBooks = () => {
       const booksRef = collection(db, 'books');
       getDocs(booksRef)
         .then((snapshot) => {
           const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-          setCategories(docs);
+          setBooks(docs);
         })
         .catch((error) => {
           console.log('Error getting categories:', error);
         });
     };
 
-    getCategories();
+    getBooks();
   }, []);
+
+  const updateBooks = (newBook) => {
+    setBooks((prevState) => [...prevState, newBook]);
+  };
 
   return (
     <>
@@ -67,19 +70,11 @@ export default function CategoriesPage() {
       <Container>
         <div className={classes.categoryHeader}>
           <Typography variant="h4">Books Management</Typography>
-          <Button variant="contained" onClick={handleModal} className={classes.categoryBtn}>
+          <Button variant="contained" onClick={openModal} className={classes.categoryBtn}>
             Add Book
           </Button>
           {showModal && (
-            <CategoriesModal
-              categories={categories}
-              setCategories={setCategories}
-              open={handleModal}
-              close={closeModal}
-              book={book}
-              showModal={showModal}
-              getBook={getBook}
-            />
+            <BookModal showModal={showModal} closeModal={closeModal} book={book} updateBooks={updateBooks} />
           )}
         </div>
 
@@ -95,7 +90,7 @@ export default function CategoriesPage() {
         </Stack> */}
 
         {/* <ProductList products={PRODUCTS} /> */}
-        <CategoryList categories={categories} setShowModal={setShowModal} getBook={getBook} showModal={showModal} />
+        <BookList books={books} setShowModal={setShowModal} setBookHandler={setBookHandler} showModal={showModal} />
 
         {/* <ProductCartWidget /> */}
       </Container>

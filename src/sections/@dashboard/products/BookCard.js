@@ -1,18 +1,9 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 // @mui
 import { Box, Card, Link, Typography, Stack } from '@mui/material';
 import { styled } from '@mui/material/styles';
-// utils
-import { fCurrency } from '../../../utils/formatNumber';
-// components
-import Label from '../../../components/label';
-import { ColorPreview } from '../../../components/color-utils';
-import EditIcon from '@mui/icons-material/Edit';
-// import ProductModal from 'src/Reuseable/Product/ProductModal';
-import classes from './CategoryCard.module.css';
-import CategoriesModal from 'src/Reuseable/Modal/CategoriesModal';
+
+import classes from './BookCard.module.css';
 import MenuIcon from 'src/Reuseable/MenuIcon/MenuIcon';
 
 // ----------------------------------------------------------------------
@@ -27,15 +18,14 @@ const StyledProductImg = styled('img')({
 
 // ----------------------------------------------------------------------
 
-CategoryCard.propTypes = {
+BookCard.propTypes = {
   category: PropTypes.object,
 };
 
-
-export default function CategoryCard({ category, setShowModal,getBook }) {
-  const { id, title, author, genre, discounted_price,mrp_price,stock } = category;
-  console.log("books stuff",id,title,category.images[0])
-  const navigate = useNavigate();
+export default function BookCard({ book, setShowModal, setBookHandler }) {
+  // const navigate = useNavigate();
+  const { id, title, author, genre, discount_price, mrp_price, stock } = book;
+  console.log('books stuff', book);
 
   return (
     <Card
@@ -59,7 +49,7 @@ export default function CategoryCard({ category, setShowModal,getBook }) {
         >
           Order No: {category.orderNo}
         </Label> */}
-        <StyledProductImg alt={name} src={category.images[0]} />
+        <StyledProductImg alt={name} src={book?.images[0]} />
       </Box>
 
       <Stack spacing={2} sx={{ p: 3 }}>
@@ -69,26 +59,25 @@ export default function CategoryCard({ category, setShowModal,getBook }) {
           </Typography>
           <div className={classes.cardHeader}>
             <Typography variant="subtitle2" noWrap>
-             {title}
+              {title}
             </Typography>
-            
-            <MenuIcon item={category}  type="category" setShowModal={setShowModal} getBook={getBook} />
-            
-            
+
+            <MenuIcon item={book} type="category" setShowModal={setShowModal} setBookHandler={setBookHandler} />
           </div>
 
           <Typography className={classes.namecard} variant="subtitle2" noWrap>
-           {author}
+            {author}
           </Typography>
         </Link>
         <Stack direction="row" alignItems="center">
           {/* <ColorPreview colors={colors} /> */}
           <Typography variant="subtitle1">
-            ₹ {discounted_price}<span className={classes.stricksamount}>₹ {mrp_price}</span>
+            ₹ {discount_price}
+            <span className={classes.stricksamount}>₹ {mrp_price}</span>
           </Typography>
         </Stack>
         <Stack direction="row" alignItems="center">
-       {stock}
+          {stock}
         </Stack>
       </Stack>
     </Card>

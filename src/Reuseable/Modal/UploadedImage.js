@@ -1,10 +1,8 @@
-import React, { useState } from 'https://cdn.skypack.dev/react@17.0.1';
-import ReactDOM from 'https://cdn.skypack.dev/react-dom@17.0.1';
-import shortid from 'https://cdn.skypack.dev/shortid@2.2.16';
+import React, { useState } from 'react';
 import './UploadedImage.css';
+import { errorNotification } from 'src/utils/notification';
 
-const UploadedImage = () => {
-  const [selectedfile, SetSelectedFile] = useState([]);
+const UploadedImage = ({ selectedfile, SetSelectedFile }) => {
   const [Files, SetFiles] = useState([]);
 
   const filesizes = (bytes, decimals = 2) => {
@@ -25,17 +23,24 @@ const UploadedImage = () => {
       let file = e.target.files[i];
       reader.onloadend = () => {
         SetSelectedFile((preValue) => {
-          return [
-            ...preValue,
-            {
-              id: shortid.generate(),
-              filename: e.target.files[i].name,
-              filetype: e.target.files[i].type,
-              fileimage: reader.result,
-              datetime: e.target.files[i].lastModifiedDate.toLocaleString('en-IN'),
-              filesize: filesizes(e.target.files[i].size),
-            },
-          ];
+          console.log('prevValue: ', preValue);
+          if (preValue.length === 6) {
+            errorNotification('Only 6 images should be uploaded');
+            return [...preValue];
+          } else {
+            return [
+              ...preValue,
+              {
+                id: new Date().getTime() + i,
+                filename: e.target.files[i].name,
+                filetype: e.target.files[i].type,
+                fileimage: reader.result,
+                file: file,
+                datetime: e.target.files[i].lastModifiedDate.toLocaleString('en-IN'),
+                filesize: filesizes(e.target.files[i].size),
+              },
+            ];
+          }
         });
       };
       if (e.target.files[i]) {
@@ -60,9 +65,7 @@ const UploadedImage = () => {
     e.target.reset();
     if (selectedfile.length > 0) {
       for (let index = 0; index < selectedfile.length; index++) {
-        SetFiles((preValue) => {
-          return [...preValue, selectedfile[index]];
-        });
+        SetFiles((preValue) => [...preValue, selectedfile[index]]);
       }
       SetSelectedFile([]);
     } else {
@@ -88,10 +91,11 @@ const UploadedImage = () => {
               <div className="kb-data-box">
                 <div className="kb-modal-data-title">
                   <div className="kb-data-title">
-                    <h6>Multiple File Upload With Preview</h6>
+                    <h6>Upload Book Images (1st image is thumbnail)</h6>
                   </div>
                 </div>
-                <form onSubmit={FileUploadSubmit}>
+                <form>
+                  {/* <form onSubmit={FileUploadSubmit}> */}
                   <div className="kb-file-upload">
                     <div className="file-upload-box">
                       <input
@@ -138,11 +142,23 @@ const UploadedImage = () => {
                       );
                     })}
                   </div>
-                  <div className="kb-buttons-box">
-                    <button type="submit" className="btn btn-primary form-submit">
-                      Upload
+
+                  {/* <div className="kb-buttons-box">
+                    <button
+                      type="button"
+                      className="btn btn-primary form-submit"
+                      // disabled={!(selectedfile.length === 6)}
+                      onClick={() => {
+                        if (selectedfile.length < 6) {
+                          errorNotification('6 images should be uploaded');
+                        } else {
+                          handleStoreImages(selectedfile);
+                        }
+                      }}
+                    >
+                      Upload Images
                     </button>
-                  </div>
+                  </div> */}
                 </form>
                 {Files.length > 0 ? (
                   <div className="kb-attach-box">
@@ -168,7 +184,7 @@ const UploadedImage = () => {
                               <span className="ml-3">Modified Time : {datetime}</span>
                             </p>
                             <div className="file-actions">
-                              <button className="file-action-btn" onClick={() => DeleteFile(id)}>
+                              <button type="button" className="file-action-btn" onClick={() => DeleteFile(id)}>
                                 Delete
                               </button>
                               <a href={fileimage} className="file-action-btn" download={filename}>

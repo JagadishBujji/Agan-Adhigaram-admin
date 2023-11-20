@@ -7,9 +7,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate } from 'react-router-dom';
 import { Typography } from '@mui/material';
-import CategoriesModal from '../Modal/CategoriesModal';
+import CategoriesModal from '../Modal/BookModal';
 
-export default function MenuIcon({ editItem, item, type, setShowModal, getBook }) {
+export default function MenuIcon({ editItem, item, type, setShowModal, setBookHandler }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   // const [isEditable, setIsEditable] = React.useState(false);
   const open = Boolean(anchorEl);
@@ -21,9 +21,8 @@ export default function MenuIcon({ editItem, item, type, setShowModal, getBook }
   };
 
   const handleEditBooks = () => {
-    
     setShowModal(true);
-    getBook(item);  //callback function (child to parent props)
+    setBookHandler(item); //callback function (child to parent props)
   };
 
   const navigate = useNavigate();
@@ -72,7 +71,6 @@ export default function MenuIcon({ editItem, item, type, setShowModal, getBook }
 
           <br />
         </MenuItem>
-        
       </Menu>
     </div>
   );
