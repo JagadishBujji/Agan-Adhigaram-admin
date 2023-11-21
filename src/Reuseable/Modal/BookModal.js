@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { collection, addDoc, updateDoc, doc, getDoc, setDoc } from 'firebase/firestore';
+import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
+import Select from 'react-select';
 import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -15,8 +18,6 @@ import { isNumeric, isValidDate, isValidName } from '../../utils/validation';
 import BasicSelect from '../Select/Select';
 import { errorNotification, successNotification } from '../../utils/notification';
 import UploadedImage from './UploadedImage';
-import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
-import { useDispatch } from 'react-redux';
 import { setLoading } from '../../store/userSlice';
 
 const style = {
@@ -41,14 +42,16 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export default function BookModal({ showModal, closeModal, book, updateBooks }) {
+export default function BookModal({ books, showModal, closeModal, book, updateBooks }) {
   const dispatch = useDispatch();
   const [bookUpdated, setBookUpdated] = useState({
     is_available: false,
+    related_books: [],
   });
   const [genres, setGenres] = useState([]);
   const [selectedfile, SetSelectedFile] = useState([]);
   const [deletedImages, setDeletedImages] = useState([]);
+  const [relatedBooks, setRelatedBooks] = useState([]);
   const [folderStorageName, setFolderStorageName] = useState('');
 
   useEffect(() => {
@@ -67,11 +70,32 @@ export default function BookModal({ showModal, closeModal, book, updateBooks }) 
       const datePublished = new Date(book?.date_published);
       // Function to pad a number with leading zeros if it's a single digit
       const padNumber = (num) => num.toString().padStart(2, '0');
+      // const relArr = [];
+      // book.related_books.forEach((bk) => {
+      //   books.forEach((book) => {
+      //     if (bk === book.id) {
+      //       relArr.push(book);
+      //     }
+      //   });
+      // });
+      const relArr = book.related_books
+        .map((relatedBookId) => {
+          const bookRelated = books.find((book) => book.id === relatedBookId);
+          return {
+            ...bookRelated,
+            value: bookRelated.title,
+            label: bookRelated.title,
+          };
+        })
+        .filter((relatedBook) => relatedBook);
+
+      // console.log('relArry: ', relArr);
       const updatedBook = {
         ...book,
         date_published: `${datePublished.getFullYear()}-${padNumber(datePublished.getMonth() + 1)}-${padNumber(
           datePublished.getDate()
         )}`,
+        related_books: relArr,
       };
       setBookUpdated(updatedBook);
       const updatedImages = book?.images?.map((img, i) => {
@@ -90,8 +114,20 @@ export default function BookModal({ showModal, closeModal, book, updateBooks }) 
         };
       });
       SetSelectedFile(updatedImages);
+      // related books - here but without current book
+      const relatedBooks =
+        books
+          ?.filter((bk) => bk.id !== book.id && bk.status === 'published' && bk.is_available === true)
+          ?.map((book) => ({ ...book, value: book.title, label: book.title })) || [];
+      setRelatedBooks(relatedBooks);
+    } else {
+      const relatedBooks =
+        books
+          ?.filter((bk) => bk.status === 'published' && bk.is_available === true)
+          ?.map((book) => ({ ...book, value: book.title, label: book.title })) || [];
+      setRelatedBooks(relatedBooks);
     }
-  }, [book]);
+  }, [book, books]);
 
   function extractBookDetails(url) {
     // Use a regular expression to extract the book name and folder name
@@ -182,6 +218,10 @@ export default function BookModal({ showModal, closeModal, book, updateBooks }) 
               stock: parseInt(bookUpdated.stock),
               title: bookUpdated.title,
               is_available: bookUpdated.is_available,
+              related_books: bookUpdated.related_books.map((book) => {
+                const { value, label, id, ...rest } = book;
+                return id;
+              }),
             };
             setDoc(doc(db, 'books', book.id), updatedDoc)
               .then(() => {
@@ -262,6 +302,10 @@ export default function BookModal({ showModal, closeModal, book, updateBooks }) 
               stock: parseInt(bookUpdated.stock),
               title: bookUpdated.title,
               is_available: bookUpdated.is_available,
+              related_books: bookUpdated.related_books.map((book) => {
+                const { value, label, id, ...rest } = book;
+                return id;
+              }),
             })
               .then(() => {
                 updateBooks({
@@ -563,6 +607,23 @@ export default function BookModal({ showModal, closeModal, book, updateBooks }) 
                     name="amazon_link"
                     onChange={onChangeHandler}
                     value={bookUpdated.amazon_link}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Select
+                    placeholder="Choose Related Books"
+                    isMulti
+                    closeMenuOnSelect={false}
+                    options={relatedBooks}
+                    name="related_books"
+                    // value={bookUpdated.related_books}
+                    value={bookUpdated.related_books}
+                    onChange={(val) => {
+                      setBookUpdated((prevState) => ({
+                        ...prevState,
+                        related_books: [...val],
+                      }));
+                    }}
                   />
                 </Grid>
               </Grid>

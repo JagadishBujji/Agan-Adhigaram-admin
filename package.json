@@ -1,8 +1,8 @@
 {
-  "name": "Agan-Adhigaram-admin",
+  "name": "agan-adhigaram-admin",
   "author": "way2think",
   "licence": "MIT",
-  "version": "1.7.0",
+  "version": "0.1.0",
   "private": false,
   "scripts": {
     "start": "react-scripts start",
@@ -69,7 +69,7 @@
     "react-redux": "^8.1.3",
     "react-router-dom": "^6.8.1",
     "react-scripts": "^5.0.1",
-    "react-select": "^5.7.3",
+    "react-select": "^5.8.0",
     "react-toastify": "^9.1.3",
     "simplebar-react": "^3.2.1",
     "web-vitals": "^3.1.1",

@@ -83,7 +83,13 @@ export default function BookManagement() {
             Add Book
           </Button>
           {showModal && (
-            <BookModal showModal={showModal} closeModal={closeModal} book={book} updateBooks={updateBooks} />
+            <BookModal
+              books={books}
+              showModal={showModal}
+              closeModal={closeModal}
+              book={book}
+              updateBooks={updateBooks}
+            />
           )}
         </div>
 
