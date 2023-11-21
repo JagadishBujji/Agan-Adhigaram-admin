@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, addDoc, updateDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, getDoc, setDoc } from 'firebase/firestore';
 import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -15,7 +15,7 @@ import { isNumeric, isValidDate, isValidName } from '../../utils/validation';
 import BasicSelect from '../Select/Select';
 import { errorNotification, successNotification } from '../../utils/notification';
 import UploadedImage from './UploadedImage';
-import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
+import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
 import { useDispatch } from 'react-redux';
 import { setLoading } from '../../store/userSlice';
 
@@ -43,10 +43,13 @@ const Item = styled(Paper)(({ theme }) => ({
 
 export default function BookModal({ showModal, closeModal, book, updateBooks }) {
   const dispatch = useDispatch();
-  const [bookUpdated, setBookUpdated] = useState({});
-  const [isChecked, setIsChecked] = useState(false);
+  const [bookUpdated, setBookUpdated] = useState({
+    is_available: false,
+  });
   const [genres, setGenres] = useState([]);
   const [selectedfile, SetSelectedFile] = useState([]);
+  const [deletedImages, setDeletedImages] = useState([]);
+  const [folderStorageName, setFolderStorageName] = useState('');
 
   useEffect(() => {
     const getGenreData = async () => {
@@ -61,54 +64,157 @@ export default function BookModal({ showModal, closeModal, book, updateBooks }) 
   useEffect(() => {
     console.log('book: ', book);
     if (book) {
-      setBookUpdated(book);
+      const datePublished = new Date(book?.date_published);
+      // Function to pad a number with leading zeros if it's a single digit
+      const padNumber = (num) => num.toString().padStart(2, '0');
+      const updatedBook = {
+        ...book,
+        date_published: `${datePublished.getFullYear()}-${padNumber(datePublished.getMonth() + 1)}-${padNumber(
+          datePublished.getDate()
+        )}`,
+      };
+      setBookUpdated(updatedBook);
+      const updatedImages = book?.images?.map((img, i) => {
+        const { bookName, folderName } = extractBookDetails(img);
+        // console.log('folderName: ', folderName);
+        setFolderStorageName(folderName);
+        return {
+          id: new Date().getTime() + i,
+          filename: decodeURIComponent(bookName),
+          filetype: '',
+          fileimage: img,
+          file: '',
+          datetime: '',
+          filesize: '',
+          folderName,
+        };
+      });
+      SetSelectedFile(updatedImages);
     }
   }, [book]);
 
+  function extractBookDetails(url) {
+    // Use a regular expression to extract the book name and folder name
+    const regex = /\/images%2Fbooks%2F([^%]+)%2F([^?]+)\?/;
+
+    // Match the regular expression against the URL
+    const match = url.match(regex);
+
+    // If there is a match, extract the book name and folder name
+    if (match) {
+      const folderName = match[1];
+      const bookName = match[2];
+
+      return { folderName, bookName };
+    } else {
+      // If no match is found, return an error or default values as needed
+      return null;
+    }
+  }
+
   const onChangeHandler = (e) => {
-    const { name, value } = e.target;
-    // console.log(name, value);
+    let { name, value } = e.target;
+    // console.log(name, value, e.target.isChecked);
+    if (name === 'is_available') {
+      value = !bookUpdated.is_available;
+    }
     setBookUpdated((prevState) => ({
       ...prevState,
       [name]: value,
     }));
   };
 
-  const handlePublish = async () => {
-    const bookRef = doc(db, 'books', book.id);
-    const date = new Date(bookUpdated.date_published);
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
+  const handlePublish = () => {
+    dispatch(setLoading(true));
+    console.log('publish: ', book, bookUpdated, selectedfile, deletedImages);
+    const storage = getStorage();
+    const storageRefPromises = [];
+    const storageNewUrlPromises = [];
+    // check images and push new ones and get urls, then add it to imgUrls then finish uploading
+    const oldUrls = [];
+    selectedfile.forEach((imgObj) => {
+      if (imgObj.file === '' && imgObj.filesize === '' && imgObj.filetype === '' && imgObj.datetime === '') {
+        oldUrls.push(imgObj.fileimage);
+      } else {
+        console.log('folderStorageName: ', folderStorageName);
+        const storageRef = ref(storage, `/images/books/${folderStorageName}/` + imgObj.filename);
+        storageRefPromises.push(storageRef);
+        storageNewUrlPromises.push(uploadBytes(storageRef, imgObj.file));
+      }
+    });
 
-    const formatedDate = `${day.toString().padStart(2, '0')}-${month.toString().padStart(2, '0')}-${year}`;
-    const temp = {
-      author: bookUpdated.author,
-      book_format: bookUpdated.book_format,
-      date_published: { formatedDate },
-      description: bookUpdated.description,
-      genre: bookUpdated.genre,
-      illustrator: bookUpdated.illustrator,
-      images: [
-        'https://firebasestorage.googleapis.com/v0/b/agan-adhigaram.appspot.com/o/vadai.png?alt=media',
-        ' https://firebasestorage.googleapis.com/v0/b/agan-adhigaram.appspot.com/o/vadaibook.png?alt=media',
-        'https://firebasestorage.googleapis.com/v0/b/agan-adhigaram.appspot.com/o/smallvadibook.svg?alt=media',
-        'https://firebasestorage.googleapis.com/v0/b/agan-adhigaram.appspot.com/o/vadaileaf.svg?alt=media',
-        'https://firebasestorage.googleapis.com/v0/b/agan-adhigaram.appspot.com/o/backvadipostion.svg?alt=media',
-        'https://firebasestorage.googleapis.com/v0/b/agan-adhigaram.appspot.com/o/frontvadaipostion.svg?alt=media',
-      ],
-      language: bookUpdated.language,
-      mrp_price: bookUpdated.mrp_price,
-      pages: bookUpdated.pages,
-      publisher: bookUpdated.publisher,
-      reading_age: bookUpdated.reading_age,
-      stock: bookUpdated.stock,
-      title: bookUpdated.title,
-      is_available: isChecked,
-    };
-    await updateDoc(bookRef, temp);
-    closeModal();
-    setIsChecked(false);
+    const deletePromises = [];
+    deletedImages.forEach((delImg) => {
+      const storageRef = ref(storage, `/images/books/${delImg.folderName}/` + delImg.filename);
+      deletePromises.push(deleteObject(storageRef));
+    });
+
+    Promise.all(storageNewUrlPromises)
+      .then(() => {
+        const downloadPromises = [];
+        storageRefPromises.forEach((ref) => {
+          downloadPromises.push(getDownloadURL(ref));
+        });
+        Promise.all(downloadPromises)
+          .then((imgUrls) => {
+            const percentage = ((bookUpdated.mrp_price - bookUpdated.discount_price) / bookUpdated.mrp_price) * 100;
+            const roundedPercentage = percentage.toFixed(2);
+
+            const updatedDoc = {
+              ...bookUpdated,
+              amazon_link: bookUpdated.amazon_link,
+              author: bookUpdated.author,
+              book_format: bookUpdated.book_format,
+              book_id: '',
+              date_published: new Date(bookUpdated.date_published).getTime(),
+              description: bookUpdated.description,
+              discount_percentage: parseFloat(roundedPercentage),
+              discount_price: parseFloat(bookUpdated.discount_price),
+              genre: bookUpdated.genre,
+              illustrator: bookUpdated.illustrator,
+              images: [...oldUrls, ...imgUrls], // new urls from server
+              language: bookUpdated.language,
+              mrp_price: parseFloat(parseFloat(bookUpdated.mrp_price).toFixed(2)),
+              pages: parseInt(bookUpdated.pages),
+              publisher: bookUpdated.publisher,
+              reading_age: bookUpdated.reading_age,
+              status: 'published',
+              stock: parseInt(bookUpdated.stock),
+              title: bookUpdated.title,
+              is_available: bookUpdated.is_available,
+            };
+            setDoc(doc(db, 'books', book.id), updatedDoc)
+              .then(() => {
+                Promise.all(deletePromises)
+                  .then(() => {
+                    updateBooks(updatedDoc);
+                    dispatch(setLoading(false));
+                    successNotification('Successfully Updated!!!');
+                    closeModal();
+                  })
+                  .catch((e) => {
+                    console.log(e);
+                    dispatch(setLoading(false));
+                    errorNotification(e.message);
+                  });
+              })
+              .catch((e) => {
+                console.log(e);
+                dispatch(setLoading(false));
+                errorNotification(e.message);
+              });
+          })
+          .catch((e) => {
+            console.log(e);
+            dispatch(setLoading(false));
+            errorNotification(e.message);
+          });
+      })
+      .catch((e) => {
+        console.log(e);
+        dispatch(setLoading(false));
+        errorNotification(e.message);
+      });
   };
 
   const handleSaveDraft = () => {
@@ -133,6 +239,8 @@ export default function BookModal({ showModal, closeModal, book, updateBooks }) 
         Promise.all(downloadPromises)
           .then((imgUrls) => {
             console.log('imgUrls: ', imgUrls);
+            const percentage = ((bookUpdated.mrp_price - bookUpdated.discount_price) / bookUpdated.mrp_price) * 100;
+            const roundedPercentage = percentage.toFixed(2);
             addDoc(collection(db, 'books'), {
               amazon_link: bookUpdated.amazon_link,
               author: bookUpdated.author,
@@ -140,23 +248,26 @@ export default function BookModal({ showModal, closeModal, book, updateBooks }) 
               book_id: '',
               date_published: new Date(bookUpdated.date_published).getTime(),
               description: bookUpdated.description,
-              discount_percentage: ((bookUpdated.mrp_price - bookUpdated.discount_price) / bookUpdated.mrp_price) * 100,
-              discount_price: bookUpdated.discount_price,
+              discount_percentage: parseFloat(roundedPercentage),
+              discount_price: parseFloat(bookUpdated.discount_price),
               genre: bookUpdated.genre,
               illustrator: bookUpdated.illustrator,
               images: [...imgUrls], // new urls from server
               language: bookUpdated.language,
-              mrp_price: bookUpdated.mrp_price,
-              pages: bookUpdated.pages,
+              mrp_price: parseFloat(parseFloat(bookUpdated.mrp_price).toFixed(2)),
+              pages: parseInt(bookUpdated.pages),
               publisher: bookUpdated.publisher,
               reading_age: bookUpdated.reading_age,
               status: 'draft',
-              stock: bookUpdated.stock,
+              stock: parseInt(bookUpdated.stock),
               title: bookUpdated.title,
-              is_available: isChecked,
+              is_available: bookUpdated.is_available,
             })
               .then(() => {
-                updateBooks(bookUpdated);
+                updateBooks({
+                  ...bookUpdated,
+                  images: [],
+                });
                 dispatch(setLoading(false));
                 successNotification('Successfully stored new book!!!');
                 closeModal();
@@ -180,8 +291,8 @@ export default function BookModal({ showModal, closeModal, book, updateBooks }) 
       });
   };
 
-  const saveHandler = () => {
-    // console.log('bookUpdated', bookUpdated);
+  const saveHandler = (type) => {
+    console.log('bookUpdated', bookUpdated);
     !isValidName(bookUpdated.genre)
       ? errorNotification('Invalid Genre')
       : !isValidName(bookUpdated.title)
@@ -195,7 +306,7 @@ export default function BookModal({ showModal, closeModal, book, updateBooks }) 
       : !isNumeric(bookUpdated.stock)
       ? errorNotification('Invalid Stock')
       : !isValidName(bookUpdated.description)
-      ? errorNotification('Invalid Book Description')
+      ? errorNotification('Invalid Book Description, should contain only letters')
       : !isValidName(bookUpdated.illustrator)
       ? errorNotification('Invalid Illustrator Name')
       : !isValidName(bookUpdated.language)
@@ -214,7 +325,9 @@ export default function BookModal({ showModal, closeModal, book, updateBooks }) 
       // ? errorNotification('Images are mandatory, please choose 6 images & upload it')
       selectedfile.length < 6
       ? errorNotification('Images are mandatory, please choose/upload 6 images')
-      : handleSaveDraft();
+      : type === 'draft'
+      ? handleSaveDraft()
+      : handlePublish();
   };
 
   return (
@@ -323,10 +436,8 @@ export default function BookModal({ showModal, closeModal, book, updateBooks }) 
                       <Checkbox
                         name="is_available"
                         inputProps={{ 'aria-label': 'Checkbox demo' }}
-                        onClick={() => {
-                          setIsChecked(!isChecked);
-                        }}
-                        checked={isChecked}
+                        onChange={onChangeHandler}
+                        checked={bookUpdated.is_available}
                       />
                       Available
                     </Typography>
@@ -459,27 +570,15 @@ export default function BookModal({ showModal, closeModal, book, updateBooks }) 
             <Grid item xs={12}>
               {/* <bookUpdatedUpload onChangeHandler={onChangeHandler} bookUpdated={bookUpdated} type="bookUpdated" /> */}
               {/* <Upload/> */}
-              <UploadedImage selectedfile={selectedfile} SetSelectedFile={SetSelectedFile} />
+              <UploadedImage
+                selectedfile={selectedfile}
+                SetSelectedFile={SetSelectedFile}
+                setDeletedImages={setDeletedImages}
+              />
             </Grid>
           </Grid>
           <div className={classes.uploadBtns}>
-            <Button
-              variant="contained"
-              sx={{
-                background: '#F19E38',
-                color: '#fff',
-                transition: '1s',
-                '&: hover': {
-                  background: '#F19E38',
-                  color: '#fff',
-                  transition: '1s',
-                },
-              }}
-              onClick={saveHandler}
-            >
-              Save as Draft
-            </Button>
-            {book && (
+            {book ? (
               <Button
                 variant="contained"
                 sx={{
@@ -492,9 +591,26 @@ export default function BookModal({ showModal, closeModal, book, updateBooks }) 
                     transition: '1s',
                   },
                 }}
-                onClick={handlePublish}
+                onClick={() => saveHandler('publish')}
               >
                 Publish
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                sx={{
+                  background: '#F19E38',
+                  color: '#fff',
+                  transition: '1s',
+                  '&: hover': {
+                    background: '#F19E38',
+                    color: '#fff',
+                    transition: '1s',
+                  },
+                }}
+                onClick={() => saveHandler('draft')}
+              >
+                Save as Draft
               </Button>
             )}
 

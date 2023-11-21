@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import './UploadedImage.css';
-import { errorNotification } from 'src/utils/notification';
+import { errorNotification } from '../../utils/notification';
 
-const UploadedImage = ({ selectedfile, SetSelectedFile }) => {
+const UploadedImage = ({ selectedfile, SetSelectedFile, setDeletedImages }) => {
   const [Files, SetFiles] = useState([]);
 
   const filesizes = (bytes, decimals = 2) => {
@@ -51,7 +51,14 @@ const UploadedImage = ({ selectedfile, SetSelectedFile }) => {
 
   const DeleteSelectFile = (id) => {
     if (window.confirm('Are you sure you want to delete this Image?')) {
-      const result = selectedfile.filter((data) => data.id !== id);
+      const result = selectedfile.filter((data) => {
+        if (data.id !== id) {
+          return true;
+        } else {
+          setDeletedImages((prevState) => [...prevState, data]);
+          return false;
+        }
+      });
       SetSelectedFile(result);
     } else {
       // alert('No');
@@ -128,10 +135,13 @@ const UploadedImage = ({ selectedfile, SetSelectedFile }) => {
                           <div className="file-detail">
                             <h6>{filename}</h6>
                             <p></p>
-                            <p>
-                              <span>Size : {filesize}</span>
-                              <span className="ml-2">Modified Time : {datetime}</span>
-                            </p>
+                            {filesize && (
+                              <p>
+                                <span>Size : {filesize}</span>
+                                <span className="ml-2">Modified Time : {datetime}</span>
+                              </p>
+                            )}
+
                             <div className="file-actions">
                               <button type="button" className="file-action-btn" onClick={() => DeleteSelectFile(id)}>
                                 Delete

@@ -35,7 +35,8 @@ function isValidPassword(password) {
 }
 
 function isValidName(name) {
-  const nameRegex = /^[A-Za-z\s'-]+$/;
+  // Allow letters, digits, spaces, apostrophes, and hyphens
+  const nameRegex = /^[A-Za-z0-9\s'-]+$/;
 
   return name && name.trim() !== '' && nameRegex.test(name);
 }

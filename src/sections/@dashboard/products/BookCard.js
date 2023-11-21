@@ -25,7 +25,7 @@ BookCard.propTypes = {
 export default function BookCard({ book, setShowModal, setBookHandler }) {
   // const navigate = useNavigate();
   const { id, title, author, genre, discount_price, mrp_price, stock } = book;
-  console.log('books stuff', book);
+  // console.log('books stuff', book);
 
   return (
     <Card
@@ -77,7 +77,7 @@ export default function BookCard({ book, setShowModal, setBookHandler }) {
           </Typography>
         </Stack>
         <Stack direction="row" alignItems="center">
-          {stock}
+          Stock: {stock}
         </Stack>
       </Stack>
     </Card>

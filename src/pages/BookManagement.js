@@ -58,7 +58,16 @@ export default function BookManagement() {
   }, []);
 
   const updateBooks = (newBook) => {
-    setBooks((prevState) => [...prevState, newBook]);
+    setBooks((prevState) => {
+      const arr = [...prevState];
+      const index = arr.findIndex((book) => book.id === newBook.id);
+      if (index === -1) {
+        return [...arr, newBook];
+      } else {
+        arr[index] = newBook;
+        return [...arr];
+      }
+    });
   };
 
   return (
