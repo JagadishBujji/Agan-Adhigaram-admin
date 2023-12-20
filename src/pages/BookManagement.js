@@ -89,6 +89,7 @@ export default function BookManagement() {
               closeModal={closeModal}
               book={book}
               updateBooks={updateBooks}
+              setBookHandler={setBookHandler}
             />
           )}
         </div>

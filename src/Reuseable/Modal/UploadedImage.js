@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import './UploadedImage.css';
 import { errorNotification } from '../../utils/notification';
 
-const UploadedImage = ({ selectedfile, SetSelectedFile, setDeletedImages }) => {
+const 
+UploadedImage = ({ selectedfile, SetSelectedFile, setDeletedImages }) => {
   const [Files, SetFiles] = useState([]);
 
   const filesizes = (bytes, decimals = 2) => {

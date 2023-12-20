@@ -42,7 +42,7 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export default function BookModal({ books, showModal, closeModal, book, updateBooks }) {
+export default function BookModal({ books, showModal, closeModal, book, updateBooks,setBookHandler }) {
   const dispatch = useDispatch();
   const [bookUpdated, setBookUpdated] = useState({
     is_available: false,
@@ -53,6 +53,8 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
   const [deletedImages, setDeletedImages] = useState([]);
   const [relatedBooks, setRelatedBooks] = useState([]);
   const [folderStorageName, setFolderStorageName] = useState('');
+
+
 
   useEffect(() => {
     const getGenreData = async () => {
@@ -336,7 +338,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
   };
 
   const saveHandler = (type) => {
-    console.log('bookUpdated', bookUpdated);
+  
     !isValidName(bookUpdated.genre)
       ? errorNotification('Invalid Genre')
       : !isValidName(bookUpdated.title)
@@ -373,6 +375,17 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
       ? handleSaveDraft()
       : handlePublish();
   };
+
+  const handleUnPublish= async ()=>{
+    const bookRef = doc(db, "books", book.id);
+    const bookPublishDisable= await updateDoc(bookRef,{status:"draft"})
+    // const temp={...book,"status":"draft"}
+    // const temp1=[...book,temp]
+   setBookHandler((prev)=>{return {...prev,status:"draft"}})
+     console.log("book in model in edit",book)
+    closeModal()
+  }
+
 
   return (
     <div>
@@ -639,8 +652,9 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
             </Grid>
           </Grid>
           <div className={classes.uploadBtns}>
-            {book ? (
-              <Button
+     
+            {book ?   (
+              <><Button
                 variant="contained"
                 sx={{
                   background: '#F19E38',
@@ -653,9 +667,31 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
                   },
                 }}
                 onClick={() => saveHandler('publish')}
+                disabled={book.status ==="published" ? true :false}
               >
                 Publish
               </Button>
+              <Button
+                variant="contained"
+                sx={{
+                  background: '#F19E38',
+                  color: '#fff',
+                  transition: '1s',
+                  marginLeft:"9px",
+                  '&: hover': {
+                    background: '#F19E38',
+                    color: '#fff',
+                    transition: '1s',
+                  },
+                }}
+                onClick={handleUnPublish}
+                disabled={book.status ==="draft" ? true :false}
+              >
+                UnPublish
+              </Button>
+              
+              </>
+              
             ) : (
               <Button
                 variant="contained"
@@ -675,7 +711,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
               </Button>
             )}
 
-            <Button variant="outlined" className={classes.uploadCancelBtn} onClick={closeModal}>
+            <Button variant="outlined" className={classes.uploadCancelBtn} onClick={closeModal} >
               Cancel
             </Button>
           </div>
