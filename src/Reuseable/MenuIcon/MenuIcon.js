@@ -9,7 +9,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate } from 'react-router-dom';
 import { Typography } from '@mui/material';
 import CategoriesModal from '../Modal/BookModal';
-import { doc, deleteDoc } from "firebase/firestore";
+import { doc, deleteDoc } from 'firebase/firestore';
 import { db } from 'src/services/firebase';
 
 export default function MenuIcon({ editItem, item, type, setShowModal, setBookHandler }) {
@@ -28,11 +28,10 @@ export default function MenuIcon({ editItem, item, type, setShowModal, setBookHa
     setBookHandler(item); //callback function (child to parent props)
   };
 
-  const handleDeleteBook= async ()=>{
-    await deleteDoc(doc(db, "books", item.id));
-    // console.log("delete book",item.id)
-
-  }
+  // const handleDeleteBook = async () => {
+  //   await deleteDoc(doc(db, 'books', item.id));
+  //   // console.log("delete book",item.id)
+  // };
 
   const navigate = useNavigate();
   return (
@@ -77,13 +76,11 @@ export default function MenuIcon({ editItem, item, type, setShowModal, setBookHa
             <EditIcon sx={{ mr: 1 }} />
             Edit
           </Typography>
-          
-         
 
           <br />
         </MenuItem>
-        
-        <MenuItem
+
+        {/* <MenuItem
           onClick={() => {
             handleClose();
             handleDeleteBook();
@@ -93,11 +90,9 @@ export default function MenuIcon({ editItem, item, type, setShowModal, setBookHa
             <DeleteIcon sx={{ mr: 1 }} />
             Delete
           </Typography>
-          
-         
 
           <br />
-        </MenuItem>
+        </MenuItem> */}
       </Menu>
     </div>
   );

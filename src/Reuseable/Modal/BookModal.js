@@ -42,7 +42,7 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export default function BookModal({ books, showModal, closeModal, book, updateBooks,setBookHandler }) {
+export default function BookModal({ books, showModal, closeModal, book, updateBooks }) {
   const dispatch = useDispatch();
   const [bookUpdated, setBookUpdated] = useState({
     is_available: false,
@@ -376,15 +376,16 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
       : handlePublish();
   };
 
-  const handleUnPublish= async ()=>{
-    const bookRef = doc(db, "books", book.id);
-    const bookPublishDisable= await updateDoc(bookRef,{status:"draft"})
-    // const temp={...book,"status":"draft"}
-    // const temp1=[...book,temp]
-   setBookHandler((prev)=>{return {...prev,status:"draft"}})
-     console.log("book in model in edit",book)
-    closeModal()
-  }
+  // const handleUnPublish= async ()=>{
+  //   const bookRef = doc(db, "books", book.id);
+  //   const bookPublishDisable= await updateDoc(bookRef,{status:"draft"})
+  //   const temp={...book,status:"draft"}
+  //   // const temp1=[...book,temp]
+
+  //  set(temp)
+  //    console.log("book in model in edit",bookUpdated)
+  //     closeModal()
+  // }
 
 
   return (
@@ -667,11 +668,11 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
                   },
                 }}
                 onClick={() => saveHandler('publish')}
-                disabled={book.status ==="published" ? true :false}
+               
               >
                 Publish
               </Button>
-              <Button
+              {/* <Button
                 variant="contained"
                 sx={{
                   background: '#F19E38',
@@ -688,7 +689,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
                 disabled={book.status ==="draft" ? true :false}
               >
                 UnPublish
-              </Button>
+              </Button> */}
               
               </>
               
