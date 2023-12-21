@@ -176,7 +176,7 @@ function Row({ order }) {
                   {order.ordered_books.map((book) => (
                     <TableRow key={book.id}>
                       <TableCell component="th" scope="row">
-                        {book.title}
+                        {book.title}({book.title_tamil})
                       </TableCell>
                       <TableCell>{book.genre}</TableCell>
                       <TableCell align="right">{book.author}</TableCell>
@@ -425,7 +425,7 @@ export default function OrderHistroy() {
   return (
     <>
       <Helmet>
-        <title> Daily Meat | Orders </title>
+        <title>  Agan Adhigaram | Order History </title>
       </Helmet>
 
       <Container>

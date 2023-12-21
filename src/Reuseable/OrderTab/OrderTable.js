@@ -169,8 +169,9 @@ function Row({ order, type, updateOrders }) {
                 <TableBody>
                   {order.ordered_books.map((book) => (
                     <TableRow key={book.id}>
+                     { console.log("book in order",book)}
                       <TableCell component="th" scope="row">
-                        {book.title}
+                        {book.title}({book.title_tamil})
                       </TableCell>
                       <TableCell>{book.genre}</TableCell>
                       <TableCell align="right">{book.author}</TableCell>

@@ -24,7 +24,7 @@ BookCard.propTypes = {
 
 export default function BookCard({ book, setShowModal, setBookHandler }) {
   // const navigate = useNavigate();
-  const { id, title, author, genre, discount_price, mrp_price, stock } = book;
+  const { id, title, author, genre, discount_price, mrp_price, stock ,title_tamil} = book;
   // console.log('books stuff', book);
 
   return (
@@ -59,7 +59,7 @@ export default function BookCard({ book, setShowModal, setBookHandler }) {
           </Typography>
           <div className={classes.cardHeader}>
             <Typography variant="subtitle2" noWrap>
-              {title}
+              {title}({title_tamil})
             </Typography>
 
             <MenuIcon item={book} type="category" setShowModal={setShowModal} setBookHandler={setBookHandler} />

@@ -86,7 +86,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
           return {
             ...bookRelated,
             value: bookRelated.title,
-            label: bookRelated.title,
+            label: bookRelated.title + `(${bookRelated.title_tamil})`,
           };
         })
         .filter((relatedBook) => relatedBook);
@@ -120,13 +120,13 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
       const relatedBooks =
         books
           ?.filter((bk) => bk.id !== book.id && bk.status === 'published' && bk.is_available === true)
-          ?.map((book) => ({ ...book, value: book.title, label: book.title })) || [];
+          ?.map((book) => ({ ...book, value: book.title, label: book.title+ `(${book.title_tamil})` })) || [];
       setRelatedBooks(relatedBooks);
     } else {
       const relatedBooks =
         books
           ?.filter((bk) => bk.status === 'published' && bk.is_available === true)
-          ?.map((book) => ({ ...book, value: book.title, label: book.title })) || [];
+          ?.map((book) => ({ ...book, value: book.title, label: book.title+ `(${book.title_tamil})` })) || [];
       setRelatedBooks(relatedBooks);
     }
   }, [book, books]);
@@ -219,6 +219,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
               status: 'published',
               stock: parseInt(bookUpdated.stock),
               title: bookUpdated.title,
+              title_tamil:bookUpdated.title_tamil,
               is_available: bookUpdated.is_available,
               related_books: bookUpdated.related_books.map((book) => {
                 const { value, label, id, ...rest } = book;
@@ -258,7 +259,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
         errorNotification(e.message);
       });
   };
-
+  {console.log("book in model",bookUpdated)}
   const handleSaveDraft = () => {
     dispatch(setLoading(true));
     console.log('images: ', selectedfile);
@@ -303,6 +304,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
               status: 'draft',
               stock: parseInt(bookUpdated.stock),
               title: bookUpdated.title,
+              title_tamil:bookUpdated.title_tamil,
               is_available: bookUpdated.is_available,
               related_books: bookUpdated.related_books.map((book) => {
                 const { value, label, id, ...rest } = book;
@@ -428,6 +430,19 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
                         onChange={onChangeHandler}
                         value={bookUpdated.title}
                         required
+                      />
+                    </Item>
+                  </Grid>
+                  <Grid item md={6}>
+                    <Item>
+                      <TextField
+                        fullWidth
+                        label="Book Name in Tamil"
+                        variant="outlined"
+                        name="title_tamil"
+                        onChange={onChangeHandler}
+                        value={bookUpdated.title_tamil}
+                    
                       />
                     </Item>
                   </Grid>

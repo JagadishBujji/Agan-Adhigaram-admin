@@ -27,7 +27,7 @@ export default function SettingPage() {
   return (
     <>
       <Helmet>
-        <title> Daily Meat | Settings </title>
+        <title>  Agan Adhigaram | Settings </title>
       </Helmet>
 
       <Container maxWidth="xl">
