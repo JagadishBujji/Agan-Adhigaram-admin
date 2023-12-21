@@ -259,7 +259,8 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
         errorNotification(e.message);
       });
   };
-  {console.log("book in model",bookUpdated)}
+
+  
   const handleSaveDraft = () => {
     dispatch(setLoading(true));
     console.log('images: ', selectedfile);
