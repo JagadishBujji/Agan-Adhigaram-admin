@@ -472,7 +472,7 @@ export default function OrderHistroy() {
                       Address
                     </TableCell>
                     <TableCell sx={{ color: '#F19E38' }} align="left">
-                      In Time
+                      Book Ordered Time
                     </TableCell>
                     <TableCell sx={{ color: '#F19E38' }} align="left">
                       Logistics
