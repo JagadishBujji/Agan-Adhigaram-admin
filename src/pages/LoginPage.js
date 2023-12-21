@@ -3,7 +3,6 @@ import { Helmet } from 'react-helmet-async';
 import { styled } from '@mui/material/styles';
 import { Link, Container, Typography, Divider, Stack, Button, Box } from '@mui/material';
 
-
 // hooks
 import useResponsive from '../hooks/useResponsive';
 // components
@@ -44,7 +43,6 @@ const StyledContent = styled('div')(({ theme }) => ({
 
 export default function LoginPage() {
   const mdUp = useResponsive('up', 'md');
-
 
   return (
     <>

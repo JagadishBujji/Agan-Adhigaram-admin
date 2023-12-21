@@ -268,11 +268,13 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
     const storagePromises = [];
     const storageRefPromises = [];
     const timestamp = new Date().getTime();
+
     selectedfile.forEach((img) => {
       const storageRef = ref(storage, `/images/books/${bookUpdated.title}-${timestamp}/` + img.filename);
       storageRefPromises.push(storageRef);
       storagePromises.push(uploadBytes(storageRef, img.file));
     });
+
     Promise.all(storagePromises)
       .then((res) => {
         console.log('res: ', res);
@@ -591,7 +593,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
                     variant="outlined"
                     name="date_published"
                     onChange={onChangeHandler}
-                    value={bookUpdated.date_published}
+                    value={bookUpdated.date_published || '2023-12-10'}
                     required
                   />
                 </Grid>
