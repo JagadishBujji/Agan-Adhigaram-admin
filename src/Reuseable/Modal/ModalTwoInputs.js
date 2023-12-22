@@ -4,6 +4,8 @@ import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import { Divider, Grid, Stack, TextField } from '@mui/material';
 import { useState } from 'react';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from 'src/services/firebase';
 
 const style = {
   position: 'absolute',
@@ -39,15 +41,25 @@ const cancel = {
   },
 };
 
-export default function ModalTwoInputs({ title, btnTitle, label1, label2, handleSubmit }) {
+export default function ModalTwoInputs({ title, btnTitle, label1, label2, handleSubmit, order, updateOrders }) {
   const [input1, setInput1] = useState('');
   const [input2, setInput2] = useState('');
   const [open, setOpen] = useState(false);
-  const handleOpen = () => setOpen(true);
+
   const handleClose = () => {
     setOpen(false);
     setInput1('');
     setInput2('');
+  };
+// {console.log("ordered inside ",order)}
+  const handleOpen =async () => {
+    const orderDetail = doc(db, 'orders', order.id);
+    const dispatchTime={dispatched_timestamp: new Date().getTime()}
+    await updateDoc(orderDetail,dispatchTime)
+    updateOrders(order.id,dispatchTime)
+    setOpen(true);
+
+
   };
 
   const submitHandler = (e) => {

@@ -92,7 +92,7 @@ export default function OrderTab() {
         }
       });
 
-      // console.log('getData: ', orderList);
+      console.log('getData: ', orderList);
       dispatch(setOrders(orderList));
     };
 

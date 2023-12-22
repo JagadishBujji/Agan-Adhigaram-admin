@@ -69,7 +69,24 @@ function Row({ order, type, updateOrders }) {
       color: '#fff',
     },
   };
-
+  function customTime(n) {
+    const storeDate = new Date(n).toLocaleString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+    return storeDate;
+  }
+  async function handleDeliveryBtn() {
+    const orderDetail = doc(db, 'orders', order.id);
+    const deliveryTime = { delivered_timestamp: new Date().getTime() };
+    await updateDoc(orderDetail, deliveryTime);
+    updateOrders(order.id, deliveryTime);
+    updateStatus(null, 'delivered');
+  }
   return (
     <>
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -79,7 +96,24 @@ function Row({ order, type, updateOrders }) {
         <TableCell align="left">{order.userDetail.name}</TableCell>
         <TableCell align="left">{order.userDetail.phone}</TableCell>
         {/* <TableCell align="left">{`${order.userDetail.address}`}</TableCell> */}
-        <TableCell align="left">
+
+        {type === 'booked' ? (
+          <TableCell align="left">{customTime(order.ordered_timestamp)}</TableCell>
+        ) : type === 'dispatched' ? (
+          <TableCell align="left">{customTime(order.dispatched_timestamp)}</TableCell>
+        ) : type === 'delivered' ? (
+          <TableCell align="left">{customTime(order.delivered_timestamp)}</TableCell>
+        ) : type === 'cancelled' ? (
+          <TableCell sx={{ color: '#F19E38' }} align="left">
+            {customTime(order.dispatched_timestamp)}
+          </TableCell>
+        ) : (
+          <>
+            <TableCell align="left">{customTime(order.ordered_timestamp)}</TableCell>
+          </>
+        )}
+
+        {/* <TableCell align="left">
           {new Date(order.ordered_timestamp).toLocaleString('en-IN', {
             day: '2-digit',
             month: '2-digit',
@@ -88,7 +122,7 @@ function Row({ order, type, updateOrders }) {
             minute: '2-digit',
             hour12: true,
           })}
-        </TableCell>
+        </TableCell> */}
         {/* <TableCell align="left" style={{ textTransform: 'capitalize' }}>
           {order.logistics}
         </TableCell> */}
@@ -128,32 +162,73 @@ function Row({ order, type, updateOrders }) {
                     btnTitle="Dispatched"
                     label1="Logistic Name (optional)"
                     label2="Logistic Number (Tracking No.) (optional)"
+                    updateOrders={updateOrders}
+                    order={order}
                     handleSubmit={(inputs, closeModal) => {
                       updateStatus(inputs, 'dispatched', closeModal);
                     }}
                   />
                 ) : order.status === 'dispatched' ? (
-                  <Button sx={delivered} variant="contained" onClick={() => updateStatus(null, 'delivered')}>
+                  <Button sx={delivered} variant="contained" onClick={handleDeliveryBtn}>
                     Delivered
                   </Button>
                 ) : null}
               </Stack>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" marginBottom="10px">
-                <Card sx={{ padding: '10px', mb: 1, width: '100%' }}>
-                  <Typography>
-                    <b className={classes.addres}>Address :</b>
-                    <span>{order.userDetail.address}</span>
-                  </Typography>
-                  <Typography>
-                    <b className={classes.addres}>Logistics :</b>
-                    <span>{order.logistics ? `${order.logistics.name}-${order.logistics.number}` : 'NIL'}</span>
-                  </Typography>
-                  <Typography>
-                    <b className={classes.addres}>Total Quantity :</b>
-                    <span>{order.total_qty}</span>
-                  </Typography>
-                </Card>
-              </Stack>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" marginBottom="10px">
+                  <Card sx={{ padding: '10px', mb: 1, width: '100%' }}>
+                    <Typography>
+                      <b className={classes.addres}>Address :</b>
+                      <span>{order.userDetail.address}</span>
+                    </Typography>
+                    <Typography>
+                      <b className={classes.addres}>Logistics :</b>
+                      <span>{order.logistics ? `${order.logistics.name}-${order.logistics.number}` : 'NIL'}</span>
+                    </Typography>
+                    <Typography>
+                      <b className={classes.addres}>Total Quantity :</b>
+                      <span>{order.total_qty}</span>
+                    </Typography>
+                  </Card>
+                </Stack>
+                <>
+                  <div>
+                    <div className="row">
+                      <div className={`col-12 col-md-10 ${classes.hhGrayBox} ${classes.pt45} ${classes.pb20} `}>
+                        <div className={classes.container}>
+                          <div className={`${classes.orderTracking} ${classes.completed}`}>
+                            <span className={classes.isComplete}></span>
+                            <p>
+                              Ordered <br />
+                              <span>{customTime(order.ordered_timestamp)}</span>
+                            </p>
+                          </div>
+                          <div
+                            className={`${classes.orderTracking} ${
+                              order.status === 'dispatched' && classes.completed
+                            } ${order.status === 'delivered' && classes.completed}`}
+                          >
+                            <span className={classes.isComplete}></span>
+                            <p>
+                              Dispatched <br />
+                              <span>{order.dispatched_timestamp ? customTime(order.dispatched_timestamp) : ''}</span>
+                            </p>
+                          </div>
+                          <div
+                            className={`${classes.orderTracking} ${order.status === 'delivered' && classes.completed} `}
+                          >
+                            <span className={classes.isComplete}></span>
+                            <p>
+                              Delivered <br />
+                              <span>{order.delivered_timestamp ? customTime(order.delivered_timestamp) : ''}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              </div>
               <Table size="medium" aria-label="purchases">
                 <TableHead>
                   <TableRow>
@@ -169,7 +244,7 @@ function Row({ order, type, updateOrders }) {
                 <TableBody>
                   {order.ordered_books.map((book) => (
                     <TableRow key={book.id}>
-                     { console.log("book in order",book)}
+                      {console.log('book in order', book)}
                       <TableCell component="th" scope="row">
                         {book.title}({book.title_tamil})
                       </TableCell>
@@ -242,9 +317,29 @@ export default function OrderTable({ orders, type, updateOrders }) {
             {/* <TableCell sx={{ color: '#F19E38' }} align="left">
               Address
             </TableCell> */}
-            <TableCell sx={{ color: '#F19E38' }} align="left">
-              Book Ordered Time
-            </TableCell>
+            {type === 'booked' ? (
+              <TableCell sx={{ color: '#F19E38' }} align="left">
+                Book Ordered Time
+              </TableCell>
+            ) : type === 'dispatched' ? (
+              <TableCell sx={{ color: '#F19E38' }} align="left">
+                Book Dispatched Time
+              </TableCell>
+            ) : type === 'delivered' ? (
+              <TableCell sx={{ color: '#F19E38' }} align="left">
+                Book Delivered Time
+              </TableCell>
+            ) : type === 'cancelled' ? (
+              <TableCell sx={{ color: '#F19E38' }} align="left">
+                Book Cancelled Time
+              </TableCell>
+            ) : (
+              <>
+                <TableCell sx={{ color: '#F19E38' }} align="left">
+                  Book Ordered Time
+                </TableCell>
+              </>
+            )}
             {/* <TableCell sx={{ color: '#F19E38' }} align="left">
               Logistics
             </TableCell> */}
