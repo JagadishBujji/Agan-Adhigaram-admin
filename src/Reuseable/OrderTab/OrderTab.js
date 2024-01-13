@@ -60,6 +60,7 @@ export default function OrderTab() {
 
       const q = query(
         collection(db, 'orders'),
+        where('payment_status', '==', 'PAYMENT_SUCCESS'),
         where('ordered_timestamp', '>=', thirtyDaysAgoTimestamp),
         orderBy('ordered_timestamp', 'desc')
       );

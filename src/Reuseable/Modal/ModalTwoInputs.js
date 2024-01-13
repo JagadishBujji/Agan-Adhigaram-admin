@@ -51,15 +51,13 @@ export default function ModalTwoInputs({ title, btnTitle, label1, label2, handle
     setInput1('');
     setInput2('');
   };
-// {console.log("ordered inside ",order)}
-  const handleOpen =async () => {
-    const orderDetail = doc(db, 'orders', order.id);
-    const dispatchTime={dispatched_timestamp: new Date().getTime()}
-    await updateDoc(orderDetail,dispatchTime)
-    updateOrders(order.id,dispatchTime)
+  // {console.log("ordered inside ",order)}
+  const handleOpen = async () => {
+    // const orderDetail = doc(db, 'orders', order.id);
+    // const dispatchTime = { dispatched_timestamp: new Date().getTime() };
+    // await updateDoc(orderDetail, dispatchTime);
+    // updateOrders(order.id, dispatchTime);
     setOpen(true);
-
-
   };
 
   const submitHandler = (e) => {

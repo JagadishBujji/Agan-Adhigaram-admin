@@ -25,11 +25,16 @@ function Row({ order, type, updateOrders }) {
   const updateStatus = (data, status, closeModal) => {
     const confirmation = window.confirm('Are you sure to proceed?');
     if (confirmation) {
-      // console.log('data: ', data);
+      // console.log('data: ', data, order, status);
       const orderDetail = doc(db, 'orders', order.id);
       let updatedData = {
         status,
       };
+      if (status === 'dispatched') {
+        updatedData.dispatched_timestamp = new Date().getTime();
+      } else if (status === 'delivered') {
+        updatedData.delivered_timestamp = new Date().getTime();
+      }
       if (data && (data.input1 || data.input2)) {
         updatedData.logistics = {
           name: data.input1,
@@ -80,13 +85,14 @@ function Row({ order, type, updateOrders }) {
     });
     return storeDate;
   }
-  async function handleDeliveryBtn() {
-    const orderDetail = doc(db, 'orders', order.id);
-    const deliveryTime = { delivered_timestamp: new Date().getTime() };
-    await updateDoc(orderDetail, deliveryTime);
-    updateOrders(order.id, deliveryTime);
-    updateStatus(null, 'delivered');
-  }
+
+  // async function handleDeliveryBtn() {
+  //   // const orderDetail = doc(db, 'orders', order.id);
+  //   // const deliveryTime = { };
+  //   // await updateDoc(orderDetail, deliveryTime);
+  //   // updateOrders(order.id, deliveryTime);
+  //   updateStatus(null, 'delivered');
+  // }
   return (
     <>
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -169,7 +175,7 @@ function Row({ order, type, updateOrders }) {
                     }}
                   />
                 ) : order.status === 'dispatched' ? (
-                  <Button sx={delivered} variant="contained" onClick={handleDeliveryBtn}>
+                  <Button sx={delivered} variant="contained" onClick={() => updateStatus(null, 'delivered')}>
                     Delivered
                   </Button>
                 ) : null}
