@@ -166,8 +166,8 @@ function Row({ order, type, updateOrders }) {
                   <ModalTwoInputs
                     title="Logistics Details"
                     btnTitle="Dispatched"
-                    label1="Logistic Name (optional)"
-                    label2="Logistic Number (Tracking No.) (optional)"
+                    label1="Logistic Name"
+                    label2="Logistic Number (Tracking No.)"
                     updateOrders={updateOrders}
                     order={order}
                     handleSubmit={(inputs, closeModal) => {

@@ -6,6 +6,8 @@ import { Divider, Grid, Stack, TextField } from '@mui/material';
 import { useState } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from 'src/services/firebase';
+import BasicSelect from '../Select/Select';
+import { errorNotification } from 'src/utils/notification';
 
 const style = {
   position: 'absolute',
@@ -62,8 +64,14 @@ export default function ModalTwoInputs({ title, btnTitle, label1, label2, handle
 
   const submitHandler = (e) => {
     e.preventDefault();
-    handleSubmit({ input1, input2 }, () => handleClose());
+    if ((input1 === 'stcourier' || input1 === 'indiapost') && input2 !== '') {
+      handleSubmit({ input1, input2 }, () => handleClose());
+    } else {
+      errorNotification('Missing Mandatory Information. Please enter both logistic partner and tracking number.');
+    }
   };
+
+  const logisticPartners = ['stcourier', 'indiapost'];
 
   return (
     <div>
@@ -96,7 +104,7 @@ export default function ModalTwoInputs({ title, btnTitle, label1, label2, handle
           <Divider />
           <Grid container spacing={2}>
             <Grid item md={12} sx={{ mt: 3 }}>
-              <TextField
+              {/* <TextField
                 fullWidth
                 id="outlined-basic"
                 label={label1}
@@ -105,6 +113,14 @@ export default function ModalTwoInputs({ title, btnTitle, label1, label2, handle
                 type="text"
                 value={input1}
                 onChange={(e) => setInput1(e.target.value)}
+              /> */}
+              <BasicSelect
+                label="Logistic Partner"
+                name="logistic"
+                values={logisticPartners}
+                value={input1}
+                onChange={(e) => setInput1(e.target.value)}
+                required
               />
             </Grid>
             <Grid item xs={12} sx={{ my: 1 }}>
@@ -117,6 +133,7 @@ export default function ModalTwoInputs({ title, btnTitle, label1, label2, handle
                 type="text"
                 value={input2}
                 onChange={(e) => setInput2(e.target.value)}
+                required
               />
             </Grid>
           </Grid>

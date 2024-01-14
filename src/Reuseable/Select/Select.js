@@ -7,7 +7,7 @@ export default function BasicSelect({ label, name, value, values, onChange, requ
   return (
     <Box sx={{ minWidth: 120 }}>
       <FormControl fullWidth>
-        <InputLabel id="demo-simple-select-label">{label}</InputLabel>
+        <InputLabel id={label}>{label}</InputLabel>
         <NativeSelect label={label} onChange={onChange} name={name} value={value} required={required}>
           <option value="">--Select--</option>
           {values?.map((val) => (
