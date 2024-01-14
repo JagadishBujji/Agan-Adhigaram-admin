@@ -352,7 +352,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
       ? errorNotification('Invalid Discounted Price')
       : !isNumeric(bookUpdated.stock)
       ? errorNotification('Invalid Stock')
-      : !isValidName(bookUpdated.description)
+      : bookUpdated.description !== ''
       ? errorNotification('Invalid Book Description, should contain only letters')
       : !isValidName(bookUpdated.illustrator)
       ? errorNotification('Invalid Illustrator Name')
