@@ -54,8 +54,6 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
   const [relatedBooks, setRelatedBooks] = useState([]);
   const [folderStorageName, setFolderStorageName] = useState('');
 
-
-
   useEffect(() => {
     const getGenreData = async () => {
       const docRef = doc(db, 'app', 'meta');
@@ -80,8 +78,8 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
       //     }
       //   });
       // });
-      const relArr = book.related_books
-        .map((relatedBookId) => {
+      const relArr = book?.related_books
+        ?.map((relatedBookId) => {
           const bookRelated = books.find((book) => book.id === relatedBookId);
           return {
             ...bookRelated,
@@ -120,13 +118,13 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
       const relatedBooks =
         books
           ?.filter((bk) => bk.id !== book.id && bk.status === 'published' && bk.is_available === true)
-          ?.map((book) => ({ ...book, value: book.title, label: book.title+ `(${book.title_tamil})` })) || [];
+          ?.map((book) => ({ ...book, value: book.title, label: book.title + `(${book.title_tamil})` })) || [];
       setRelatedBooks(relatedBooks);
     } else {
       const relatedBooks =
         books
           ?.filter((bk) => bk.status === 'published' && bk.is_available === true)
-          ?.map((book) => ({ ...book, value: book.title, label: book.title+ `(${book.title_tamil})` })) || [];
+          ?.map((book) => ({ ...book, value: book.title, label: book.title + `(${book.title_tamil})` })) || [];
       setRelatedBooks(relatedBooks);
     }
   }, [book, books]);
@@ -219,7 +217,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
               status: 'published',
               stock: parseInt(bookUpdated.stock),
               title: bookUpdated.title,
-              title_tamil:bookUpdated.title_tamil,
+              title_tamil: bookUpdated.title_tamil,
               is_available: bookUpdated.is_available,
               related_books: bookUpdated.related_books.map((book) => {
                 const { value, label, id, ...rest } = book;
@@ -260,7 +258,6 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
       });
   };
 
-  
   const handleSaveDraft = () => {
     dispatch(setLoading(true));
     console.log('images: ', selectedfile);
@@ -307,7 +304,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
               status: 'draft',
               stock: parseInt(bookUpdated.stock),
               title: bookUpdated.title,
-              title_tamil:bookUpdated.title_tamil,
+              title_tamil: bookUpdated.title_tamil,
               is_available: bookUpdated.is_available,
               related_books: bookUpdated.related_books.map((book) => {
                 const { value, label, id, ...rest } = book;
@@ -343,7 +340,6 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
   };
 
   const saveHandler = (type) => {
-  
     !isValidName(bookUpdated.genre)
       ? errorNotification('Invalid Genre')
       : !isValidName(bookUpdated.title)
@@ -391,7 +387,6 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
   //    console.log("book in model in edit",bookUpdated)
   //     closeModal()
   // }
-
 
   return (
     <div>
@@ -445,7 +440,6 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
                         name="title_tamil"
                         onChange={onChangeHandler}
                         value={bookUpdated.title_tamil}
-                    
                       />
                     </Item>
                   </Grid>
@@ -671,26 +665,25 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
             </Grid>
           </Grid>
           <div className={classes.uploadBtns}>
-     
-            {book ?   (
-              <><Button
-                variant="contained"
-                sx={{
-                  background: '#F19E38',
-                  color: '#fff',
-                  transition: '1s',
-                  '&: hover': {
+            {book ? (
+              <>
+                <Button
+                  variant="contained"
+                  sx={{
                     background: '#F19E38',
                     color: '#fff',
                     transition: '1s',
-                  },
-                }}
-                onClick={() => saveHandler('publish')}
-               
-              >
-                Publish
-              </Button>
-              {/* <Button
+                    '&: hover': {
+                      background: '#F19E38',
+                      color: '#fff',
+                      transition: '1s',
+                    },
+                  }}
+                  onClick={() => saveHandler('publish')}
+                >
+                  Publish
+                </Button>
+                {/* <Button
                 variant="contained"
                 sx={{
                   background: '#F19E38',
@@ -708,9 +701,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
               >
                 UnPublish
               </Button> */}
-              
               </>
-              
             ) : (
               <Button
                 variant="contained"
@@ -730,7 +721,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
               </Button>
             )}
 
-            <Button variant="outlined" className={classes.uploadCancelBtn} onClick={closeModal} >
+            <Button variant="outlined" className={classes.uploadCancelBtn} onClick={closeModal}>
               Cancel
             </Button>
           </div>
