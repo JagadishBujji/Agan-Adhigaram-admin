@@ -101,7 +101,6 @@ function Row({ order, type, updateOrders }) {
         </TableCell>
         <TableCell align="left">{order.userDetail.name}</TableCell>
         <TableCell align="left">{order.userDetail.phone}</TableCell>
-        {/* <TableCell align="left">{`${order.userDetail.address}`}</TableCell> */}
 
         {type === 'booked' ? (
           <TableCell align="left">{customTime(order.ordered_timestamp)}</TableCell>
@@ -185,7 +184,7 @@ function Row({ order, type, updateOrders }) {
                   <Card sx={{ padding: '10px', mb: 1, width: '100%' }}>
                     <Typography>
                       <b className={classes.addres}>Address :</b>
-                      <span>{order.userDetail.address}</span>
+                      <span>{`${order.userDetail.address}, ${order.userDetail.city}, ${order.userDetail.state}, ${order.userDetail.country} - ${order.userDetail.pincode}`}</span>
                     </Typography>
                     <Typography>
                       <b className={classes.addres}>Logistics :</b>

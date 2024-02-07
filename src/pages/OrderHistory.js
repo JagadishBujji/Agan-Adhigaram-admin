@@ -425,7 +425,7 @@ export default function OrderHistroy() {
   return (
     <>
       <Helmet>
-        <title>  Agan Adhigaram | Order History </title>
+        <title> Agan Adhigaram | Order History </title>
       </Helmet>
 
       <Container>

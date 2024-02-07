@@ -97,20 +97,21 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
         )}`,
         related_books: relArr,
       };
+      console.log('updated book: ', updatedBook);
       setBookUpdated(updatedBook);
       const updatedImages = book?.images?.map((img, i) => {
-        const { bookName, folderName } = extractBookDetails(img);
-        // console.log('folderName: ', folderName);
-        setFolderStorageName(folderName);
+        const bookDetails = extractBookDetails(img);
+        console.log('bookDetails: ', bookDetails);
+        setFolderStorageName(bookDetails?.folderName);
         return {
           id: new Date().getTime() + i,
-          filename: decodeURIComponent(bookName),
+          filename: decodeURIComponent(bookDetails?.bookName),
           filetype: '',
           fileimage: img,
           file: '',
           datetime: '',
           filesize: '',
-          folderName,
+          folderName: bookDetails?.folderName,
         };
       });
       SetSelectedFile(updatedImages);
@@ -129,24 +130,35 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
     }
   }, [book, books]);
 
-  function extractBookDetails(url) {
-    // Use a regular expression to extract the book name and folder name
-    const regex = /\/images%2Fbooks%2F([^%]+)%2F([^?]+)\?/;
+  // function extractBookDetails(url) {
+  //   console.log('url: ', url);
+  //   // Use a regular expression to extract the book name and folder name
+  //   const regex = /\/images%2Fbooks%2F([^%]+)%2F([^%]+)\?alt=media&token=/;
+  //   // Match the regular expression against the URL
+  //   const match = url.match(regex);
 
-    // Match the regular expression against the URL
-    const match = url.match(regex);
+  //   console.log('match: ', match);
 
-    // If there is a match, extract the book name and folder name
-    if (match) {
-      const folderName = match[1];
-      const bookName = match[2];
+  //   // If there is a match, extract the book name and folder name
+  //   if (match) {
+  //     const folderName = match[1];
+  //     const bookName = match[2];
 
-      return { folderName, bookName };
-    } else {
-      // If no match is found, return an error or default values as needed
-      return null;
-    }
-  }
+  //     return { folderName, bookName };
+  //   } else {
+  //     // If no match is found, return an error or default values as needed
+  //     return null;
+  //   }
+  // }
+
+  const extractBookDetails = (url) => {
+    const decodedImg = decodeURIComponent(url);
+    const startIndex = decodedImg.search('images/books/') + 13;
+    const endIndex = decodedImg.search('alt=media') - 1;
+    const [folderName, bookName] = decodedImg.slice(startIndex, endIndex).split('/');
+    // console.log('folderName, bookName: ', folderName, bookName);
+    return { folderName, bookName };
+  };
 
   const onChangeHandler = (e) => {
     let { name, value } = e.target;
@@ -352,8 +364,8 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
       ? errorNotification('Invalid Discounted Price')
       : !isNumeric(bookUpdated.stock)
       ? errorNotification('Invalid Stock')
-      : bookUpdated.description !== ''
-      ? errorNotification('Invalid Book Description, should contain only letters')
+      : bookUpdated.description === ''
+      ? errorNotification('Invalid Book Description, it should be empty')
       : !isValidName(bookUpdated.illustrator)
       ? errorNotification('Invalid Illustrator Name')
       : !isValidName(bookUpdated.language)
