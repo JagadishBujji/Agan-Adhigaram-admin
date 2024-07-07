@@ -24,8 +24,8 @@ BookCard.propTypes = {
 
 export default function BookCard({ book, setShowModal, setBookHandler }) {
   // const navigate = useNavigate();
-  const { id, title, author, genre, discount_price, mrp_price, stock ,title_tamil} = book;
-  // console.log('books stuff', book);
+  const { id, title, author, genre, discount_price, mrp_price, stock, title_tamil } = book;
+  console.log('books stuff', book);
 
   return (
     <Card

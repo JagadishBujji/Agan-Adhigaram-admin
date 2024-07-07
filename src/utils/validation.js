@@ -43,6 +43,7 @@ function isValidName(name) {
 
 function isValidDate(date) {
   const dateObj = new Date(date);
+  console.log('date: ', date, dateObj, dateObj.getTime(), !isNaN(dateObj.getTime()));
   return !isNaN(dateObj.getTime());
 }
 

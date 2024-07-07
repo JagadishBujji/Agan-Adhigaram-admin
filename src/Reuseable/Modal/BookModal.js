@@ -65,7 +65,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
   }, []);
 
   useEffect(() => {
-    console.log('book: ', book);
+    console.log('book-id: ', book);
     if (book) {
       const datePublished = new Date(book?.date_published);
       // Function to pad a number with leading zeros if it's a single digit
@@ -127,6 +127,10 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
           ?.filter((bk) => bk.status === 'published' && bk.is_available === true)
           ?.map((book) => ({ ...book, value: book.title, label: book.title + `(${book.title_tamil})` })) || [];
       setRelatedBooks(relatedBooks);
+      setBookUpdated((prevState) => ({
+        ...prevState,
+        date_published: new Date().toISOString().split('T')[0],
+      }));
     }
   }, [book, books]);
 
@@ -172,9 +176,10 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
     }));
   };
 
+  // dispatch(setLoading(false));
+
   const handlePublish = () => {
-    dispatch(setLoading(true));
-    console.log('publish: ', book, bookUpdated, selectedfile, deletedImages);
+    // dispatch(setLoading(true));
     const storage = getStorage();
     const storageRefPromises = [];
     const storageNewUrlPromises = [];
@@ -197,6 +202,8 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
       deletePromises.push(deleteObject(storageRef));
     });
 
+    console.log('publish: ', book);
+
     Promise.all(storageNewUrlPromises)
       .then(() => {
         const downloadPromises = [];
@@ -205,6 +212,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
         });
         Promise.all(downloadPromises)
           .then((imgUrls) => {
+            console.log('imgUrl: ', imgUrls);
             const percentage = ((bookUpdated.mrp_price - bookUpdated.discount_price) / bookUpdated.mrp_price) * 100;
             const roundedPercentage = percentage.toFixed(2);
 
@@ -236,11 +244,12 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
                 return id;
               }),
             };
+            console.log('update: ', updatedDoc, book.id);
             setDoc(doc(db, 'books', book.id), updatedDoc)
               .then(() => {
                 Promise.all(deletePromises)
                   .then(() => {
-                    updateBooks(updatedDoc);
+                    updateBooks({ ...updatedDoc, id: book.id });
                     dispatch(setLoading(false));
                     successNotification('Successfully Updated!!!');
                     closeModal();
@@ -252,13 +261,13 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
                   });
               })
               .catch((e) => {
-                console.log(e);
+                console.log('setDoc', e);
                 dispatch(setLoading(false));
                 errorNotification(e.message);
               });
           })
           .catch((e) => {
-            console.log(e);
+            console.log('downloadPromises', e);
             dispatch(setLoading(false));
             errorNotification(e.message);
           });
@@ -271,19 +280,18 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
   };
 
   const handleSaveDraft = () => {
+    // console.log('bookUpdated: ', bookUpdated);
     dispatch(setLoading(true));
     console.log('images: ', selectedfile);
     const storage = getStorage();
     const storagePromises = [];
     const storageRefPromises = [];
     const timestamp = new Date().getTime();
-
     selectedfile.forEach((img) => {
       const storageRef = ref(storage, `/images/books/${bookUpdated.title}-${timestamp}/` + img.filename);
       storageRefPromises.push(storageRef);
       storagePromises.push(uploadBytes(storageRef, img.file));
     });
-
     Promise.all(storagePromises)
       .then((res) => {
         console.log('res: ', res);
@@ -323,10 +331,11 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
                 return id;
               }),
             })
-              .then(() => {
+              .then((doc) => {
                 updateBooks({
+                  id: doc.id,
                   ...bookUpdated,
-                  images: [],
+                  images: [...imgUrls],
                 });
                 dispatch(setLoading(false));
                 successNotification('Successfully stored new book!!!');
@@ -358,6 +367,8 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
       ? errorNotification('Invalid Book Name')
       : !isValidName(bookUpdated.author)
       ? errorNotification('Invalid Author Name')
+      : !bookUpdated.title_tamil
+      ? errorNotification('Invalid Book Name in Tamil')
       : !isNumeric(bookUpdated.mrp_price)
       ? errorNotification('Invalid Price')
       : !isNumeric(bookUpdated.discount_price)
@@ -599,7 +610,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
                     variant="outlined"
                     name="date_published"
                     onChange={onChangeHandler}
-                    value={bookUpdated.date_published || '2023-12-10'}
+                    value={bookUpdated.date_published}
                     required
                   />
                 </Grid>
