@@ -80,16 +80,18 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
       // });
       const relArr = book?.related_books
         ?.map((relatedBookId) => {
+          console.log('books-----: ', books, relatedBookId);
           const bookRelated = books.find((book) => book.id === relatedBookId);
+          console.log('boorel', bookRelated);
           return {
             ...bookRelated,
-            value: bookRelated.title,
-            label: bookRelated.title + `(${bookRelated.title_tamil})`,
+            value: bookRelated?.title,
+            label: bookRelated?.title + `(${bookRelated?.title_tamil})`,
           };
         })
         .filter((relatedBook) => relatedBook);
 
-      // console.log('relArry: ', relArr);
+      console.log('relArry: ', relArr);
       const updatedBook = {
         ...book,
         date_published: `${datePublished.getFullYear()}-${padNumber(datePublished.getMonth() + 1)}-${padNumber(
@@ -304,6 +306,10 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
             console.log('imgUrls: ', imgUrls);
             const percentage = ((bookUpdated.mrp_price - bookUpdated.discount_price) / bookUpdated.mrp_price) * 100;
             const roundedPercentage = percentage.toFixed(2);
+            const relatedBooks = bookUpdated.related_books.map((book) => {
+              const { value, label, id, ...rest } = book;
+              return id;
+            });
             addDoc(collection(db, 'books'), {
               amazon_link: bookUpdated.amazon_link,
               author: bookUpdated.author,
@@ -326,16 +332,14 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
               title: bookUpdated.title,
               title_tamil: bookUpdated.title_tamil,
               is_available: bookUpdated.is_available,
-              related_books: bookUpdated.related_books.map((book) => {
-                const { value, label, id, ...rest } = book;
-                return id;
-              }),
+              related_books: relatedBooks,
             })
               .then((doc) => {
                 updateBooks({
                   id: doc.id,
                   ...bookUpdated,
                   images: [...imgUrls],
+                  related_books: relatedBooks,
                 });
                 dispatch(setLoading(false));
                 successNotification('Successfully stored new book!!!');
