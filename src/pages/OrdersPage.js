@@ -29,11 +29,12 @@ import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
-// mock
-import USERLIST from '../_mock/user';
 import OrderTab from 'src/Reuseable/OrderTab/OrderTab';
 
 // ----------------------------------------------------------------------
+
+// Empty user list - template code not used
+const USERLIST = [];
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Name', alignRight: false },

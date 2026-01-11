@@ -4,8 +4,6 @@ import { useLocation, Link as AnchorLink } from 'react-router-dom';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
 import { Box, Link, Button, Drawer, Typography, Avatar, Stack } from '@mui/material';
-// mock
-import account from '../../../_mock/account';
 // hooks
 import useResponsive from '../../../hooks/useResponsive';
 // components
@@ -16,6 +14,13 @@ import NavSection from '../../../components/nav-section';
 import navConfig from './config';
 
 // ----------------------------------------------------------------------
+
+// Static account data for nav display
+const account = {
+  displayName: 'Admin',
+  role: 'Administrator',
+  photoURL: '/assets/images/avatars/avatar_default.jpg',
+};
 
 const NAV_WIDTH = 230;
 

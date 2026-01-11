@@ -1,43 +1,42 @@
-import { Navigate, useNavigate, useRoutes } from 'react-router-dom';
+import { Navigate, useRoutes } from 'react-router-dom';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { useDispatch, useSelector } from 'react-redux';
 // layouts
 import DashboardLayout from './layouts/dashboard';
 import SimpleLayout from './layouts/simple';
-//
-import BlogPage from './pages/BlogPage';
-import OrdersPage from './pages/OrdersPage';
-import LoginPage from './pages/LoginPage';
-import Page404 from './pages/Page404';
-import DashboardAppPage from './pages/DashboardAppPage';
-import SettingPage from './pages/SettingPage';
-import BookManagement from './pages/BookManagement';
-import Products from './pages/Products';
-import District from './pages/District';
-import { useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth, authentication } from './services/firebase';
-import { AuthContext } from './context/auth-context';
-import OrderHistory from './pages/OrderHistory';
-import RegisterPage from './pages/RegisterPage';
+// services & store
+import { auth } from './services/firebase';
 import { getUserById } from './api/user';
-import { useDispatch, useSelector } from 'react-redux';
 import { errorNotification } from './utils/notification';
 import { login, logout, selectIsAuthenticated } from './store/userSlice';
+
+// Lazy load pages for code splitting
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const Page404 = lazy(() => import('./pages/Page404'));
+const DashboardAppPage = lazy(() => import('./pages/DashboardAppPage'));
+const OrderHistory = lazy(() => import('./pages/OrderHistory'));
+const BookManagement = lazy(() => import('./pages/BookManagement'));
+
+// Loading component for Suspense
+const PageLoader = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+    Loading...
+  </div>
+);
 
 // ----------------------------------------------------------------------
 
 export default function Router() {
-  const authCtx = useContext(AuthContext);
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log('user in auth', user);
       if (user) {
         const { uid } = user;
-        console.log('uid', uid);
         getUserById(uid, (result) => {
           if (result.success) {
             dispatch(login(result.data));
@@ -52,47 +51,35 @@ export default function Router() {
       }
     });
     return unsubscribe;
-  }, []);
+  }, [dispatch]);
 
-  console.log('isAuthenticated', isAuthenticated);
-
-  const AuthenticatedRoute = ({ element, ...rest }) => (isAuthenticated ? element : <Navigate to="/login" />);
+  const AuthenticatedRoute = ({ element }) => (isAuthenticated ? element : <Navigate to="/login" />);
 
   const routes = useRoutes([
     {
       path: '/dashboard',
-      element: (
-        // authCtx.isLoggedIn ?
-        // <DashboardLayout />
-        <AuthenticatedRoute element={<DashboardLayout />} />
-      ),
+      element: <AuthenticatedRoute element={<DashboardLayout />} />,
       children: [
-        // { element: <Navigate to="/dashboard/app" />, index: true },
-        { element: <Navigate to="/dashboard/orders" />, index: true },
-        { path: 'app', element: <DashboardAppPage /> },
-        // { path: 'orders', element: <OrdersPage /> },
-        { path: 'order-histroy', element: <OrderHistory /> },
-        { path: 'book-management', element: <BookManagement /> },
-        // { path: 'categories/:id/products', element: <Products /> },
-        // { path: 'districts', element: <District /> },
-        // { path: 'blog', element: <BlogPage /> },
-        // { path: 'settings', element: <SettingPage /> },
+        { element: <Navigate to="/dashboard/order-histroy" />, index: true },
+        { path: 'app', element: <Suspense fallback={<PageLoader />}><DashboardAppPage /></Suspense> },
+        { path: 'order-histroy', element: <Suspense fallback={<PageLoader />}><OrderHistory /></Suspense> },
+        { path: 'orders', element: <Navigate to="/dashboard/order-histroy" /> },
+        { path: 'book-management', element: <Suspense fallback={<PageLoader />}><BookManagement /></Suspense> },
       ],
     },
     {
       path: 'login',
-      element: <LoginPage />,
+      element: <Suspense fallback={<PageLoader />}><LoginPage /></Suspense>,
     },
     {
       path: 'register',
-      element: <RegisterPage />,
+      element: <Suspense fallback={<PageLoader />}><RegisterPage /></Suspense>,
     },
     {
       element: <AuthenticatedRoute element={<SimpleLayout />} />,
       children: [
-        // { element: <Navigate to="/dashboard/app" />, index: true },
-        { element: <Navigate to="/dashboard/orders" />, index: true },
-        { path: '404', element: <Page404 /> },
+        { element: <Navigate to="/dashboard/order-histroy" />, index: true },
+        { path: '404', element: <Suspense fallback={<PageLoader />}><Page404 /></Suspense> },
         { path: '*', element: <Navigate to="/404" /> },
       ],
     },
@@ -104,7 +91,7 @@ export default function Router() {
 
   // Wait until auth state is checked before rendering routes
   if (!authChecked) {
-    return <div>Loading...</div>;
+    return <PageLoader />;
   }
 
   return routes;
