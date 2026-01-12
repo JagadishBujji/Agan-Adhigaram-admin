@@ -133,6 +133,7 @@ export default function OrderRow({
         updateOrders(order.id, {
           invoiceResentAt: Date.now(),
           invoiceResentCount: data.resentCount,
+          isConfirmationEmailSent: true, // Mark as sent after successful resend
         });
       }
     } catch (error) {
