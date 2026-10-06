@@ -37,11 +37,11 @@ const navConfig = [
   //   path: '/dashboard/districts',
   //   icon: icon('pincode'),
   // },
-  // {
-  //   title: 'Settings',
-  //   path: '/dashboard/settings',
-  //   icon: icon('setting'),
-  // },
+  {
+    title: 'Settings',
+    path: '/dashboard/settings',
+    icon: icon('setting'),
+  },
   // {
   //   title: 'login',
   //   path: '/login',

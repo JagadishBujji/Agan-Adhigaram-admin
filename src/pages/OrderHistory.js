@@ -25,6 +25,7 @@ import { UserListToolbar } from '../sections/@dashboard/user';
 import OrderRow from 'src/Reuseable/OrderTab/OrderRow';
 import { collection, getDocs, query, where, orderBy as OB } from 'firebase/firestore';
 import { db } from '../services/firebase';
+import { formatLogistics } from '../utils/logistics';
 
 // ----------------------------------------------------------------------
 
@@ -169,7 +170,7 @@ export default function OrderHistroy() {
         minute: '2-digit',
         hour12: true,
       }),
-      Logistics: order.logistics,
+      Logistics: formatLogistics(order.logistics),
       Quantity: order.total_qty,
       'Total Price(+ delivery fee)': `Rs. ${order.total_price}`,
       Status: order.status,
