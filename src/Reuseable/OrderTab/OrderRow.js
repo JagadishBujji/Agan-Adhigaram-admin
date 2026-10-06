@@ -22,6 +22,7 @@ import { successNotification, errorNotification } from '../../utils/notification
 import LogisticsModal from '../Modal/LogisticsModal';
 import { addLogisticPartner } from '../../api/appMeta';
 import { formatLogistics } from '../../utils/logistics';
+import { formatAddress, isDeliveredToOtherPerson } from '../../utils/address';
 import classes from './OrderTable.module.css';
 
 // API base URL for Cloud Functions
@@ -238,7 +239,7 @@ export default function OrderRow({
         <TableCell align="left">{order.userDetail.phone}</TableCell>
 
         {/* Extra Columns for OrderHistory */}
-        {showExtraColumns && <TableCell align="left">{order.userDetail.address}</TableCell>}
+        {showExtraColumns && <TableCell align="left">{formatAddress(order.userDetail)}</TableCell>}
 
         {/* Time */}
         <TableCell align="left">{getDisplayTime()}</TableCell>
@@ -377,15 +378,24 @@ export default function OrderRow({
                 <Stack direction="row" justifyContent="space-between" alignItems="center" marginBottom="10px">
                   <Card sx={{ padding: '10px', mb: 1, width: '100%' }}>
                     <Typography>
-                      <b className={classes.addres}>Address :</b>
+                      <b className={classes.addres}>Deliver To :</b>
                       <span>
-                        {order.userDetail.address}
-                        {order.userDetail.city && `, ${order.userDetail.city}`}
-                        {order.userDetail.state && `, ${order.userDetail.state}`}
-                        {order.userDetail.country && `, ${order.userDetail.country}`}
-                        {order.userDetail.pincode && ` - ${order.userDetail.pincode}`}
+                        {order.userDetail.name}, {order.userDetail.phone}
+                        {order.shipping_address?.label && ` (${order.shipping_address.label})`}
                       </span>
                     </Typography>
+                    <Typography>
+                      <b className={classes.addres}>Address :</b>
+                      <span>{formatAddress(order.userDetail)}</span>
+                    </Typography>
+                    {isDeliveredToOtherPerson(order) && (
+                      <Typography>
+                        <b className={classes.addres}>Ordered By :</b>
+                        <span>
+                          {order.ordered_by.name}, {order.ordered_by.phone} ({order.userDetail.email})
+                        </span>
+                      </Typography>
+                    )}
                     <Typography>
                       <b className={classes.addres}>Logistics :</b>
                       <span>{formatLogistics(order.logistics)}</span>
