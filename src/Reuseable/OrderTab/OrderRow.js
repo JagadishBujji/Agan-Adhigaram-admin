@@ -23,6 +23,7 @@ import LogisticsModal from '../Modal/LogisticsModal';
 import { addLogisticPartner } from '../../api/appMeta';
 import { formatLogistics } from '../../utils/logistics';
 import { formatAddress, isDeliveredToOtherPerson } from '../../utils/address';
+import { formatDate } from '../../utils/preorder';
 import classes from './OrderTable.module.css';
 
 // API base URL for Cloud Functions
@@ -245,11 +246,7 @@ export default function OrderRow({
         <TableCell align="left">{getDisplayTime()}</TableCell>
 
         {/* Extra Columns for OrderHistory */}
-        {showExtraColumns && (
-          <TableCell align="left">
-            {formatLogistics(order.logistics)}
-          </TableCell>
-        )}
+        {showExtraColumns && <TableCell align="left">{formatLogistics(order.logistics)}</TableCell>}
         {showExtraColumns && <TableCell align="left">{order.total_qty}</TableCell>}
 
         {/* Total Price */}
@@ -267,6 +264,15 @@ export default function OrderRow({
               fontSize: '0.75rem',
             }}
           />
+          {order.has_preorder && order.status === 'booked' && (
+            <Chip
+              label={
+                order.expected_delivery_date ? `PRE-ORDER - ${formatDate(order.expected_delivery_date)}` : 'PRE-ORDER'
+              }
+              size="small"
+              sx={{ mt: 0.5, backgroundColor: '#9F3239', color: '#fff', fontWeight: 600, fontSize: '0.7rem' }}
+            />
+          )}
         </TableCell>
 
         {/* Expand Button */}
@@ -431,7 +437,9 @@ export default function OrderRow({
                               <span>{order.dispatched_timestamp ? customTime(order.dispatched_timestamp) : ''}</span>
                             </p>
                           </div>
-                          <div className={`${classes.orderTracking} ${order.status === 'delivered' && classes.completed}`}>
+                          <div
+                            className={`${classes.orderTracking} ${order.status === 'delivered' && classes.completed}`}
+                          >
                             <span className={classes.isComplete}></span>
                             <p>
                               Delivered <br />
@@ -463,6 +471,14 @@ export default function OrderRow({
                     <TableRow key={book.id}>
                       <TableCell component="th" scope="row">
                         {book.title}({book.title_tamil})
+                        {book.is_preorder && (
+                          <Typography variant="body2" sx={{ color: '#9F3239', fontWeight: 600 }}>
+                            Pre-order
+                            {book.expected_delivery_date
+                              ? ` - Expected ${formatDate(book.expected_delivery_date)}`
+                              : ''}
+                          </Typography>
+                        )}
                       </TableCell>
                       <TableCell>{book.genre}</TableCell>
                       <TableCell align="right">{book.author}</TableCell>

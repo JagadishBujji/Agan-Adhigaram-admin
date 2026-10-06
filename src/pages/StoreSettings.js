@@ -19,6 +19,7 @@ import {
   getStoreSettings,
   removeLogisticPartner,
   updateDeliveryCharge,
+  updatePreorderMaxQty,
 } from '../api/appMeta';
 import { errorNotification, successNotification } from '../utils/notification';
 import { isValidUrl } from '../utils/logistics';
@@ -38,6 +39,7 @@ export default function StoreSettings() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [deliveryCharge, setDeliveryCharge] = useState('');
+  const [preorderMaxQty, setPreorderMaxQty] = useState('');
   const [partners, setPartners] = useState([]);
   const [newPartner, setNewPartner] = useState({ name: '', tracking_url: '' });
 
@@ -45,6 +47,7 @@ export default function StoreSettings() {
     getStoreSettings()
       .then((settings) => {
         setDeliveryCharge(String(settings.deliveryCharge));
+        setPreorderMaxQty(String(settings.preorderMaxQty));
         setPartners(settings.logisticPartners);
       })
       .catch((e) => errorNotification(e.message))
@@ -61,6 +64,20 @@ export default function StoreSettings() {
     setIsSaving(true);
     updateDeliveryCharge(charge)
       .then(() => successNotification('Delivery charge updated. New orders will use this charge.'))
+      .catch((e) => errorNotification(e.message))
+      .finally(() => setIsSaving(false));
+  };
+
+  const savePreorderMaxQty = (e) => {
+    e.preventDefault();
+    const maxQty = Number(preorderMaxQty);
+    if (!Number.isInteger(maxQty) || maxQty < 1) {
+      errorNotification('Invalid quantity. Please enter 1 or more.');
+      return;
+    }
+    setIsSaving(true);
+    updatePreorderMaxQty(maxQty)
+      .then(() => successNotification('Pre-order quantity limit updated.'))
       .catch((e) => errorNotification(e.message))
       .finally(() => setIsSaving(false));
   };
@@ -124,6 +141,27 @@ export default function StoreSettings() {
               disabled={isLoading}
               inputProps={{ min: 0, step: 1 }}
               InputProps={{ startAdornment: <InputAdornment position="start">Rs.</InputAdornment> }}
+              required
+            />
+            <Button sx={save} variant="contained" type="submit" disabled={isLoading || isSaving}>
+              Save
+            </Button>
+          </Stack>
+        </Card>
+
+        <Card sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
+          <Typography variant="h6">Pre-order Quantity Limit</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+            Maximum copies of a pre-order book a customer can buy in one order.
+          </Typography>
+          <Stack component="form" onSubmit={savePreorderMaxQty} direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            <TextField
+              label="Copies per order"
+              type="number"
+              value={preorderMaxQty}
+              onChange={(e) => setPreorderMaxQty(e.target.value)}
+              disabled={isLoading}
+              inputProps={{ min: 1, step: 1 }}
               required
             />
             <Button sx={save} variant="contained" type="submit" disabled={isLoading || isSaving}>

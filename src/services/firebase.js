@@ -33,3 +33,9 @@ if (process.env.REACT_APP_USE_EMULATOR === 'true') {
   connectFirestoreEmulator(db, '127.0.0.1', 8080);
   connectAuthEmulator(auth, 'http://127.0.0.1:9099');
 }
+
+// API base URL for Cloud Functions
+export const FUNCTIONS_BASE_URL =
+  process.env.REACT_APP_USE_EMULATOR === 'true'
+    ? 'http://127.0.0.1:5001/agan-adhigaram/us-central1'
+    : 'https://us-central1-agan-adhigaram.cloudfunctions.net';
