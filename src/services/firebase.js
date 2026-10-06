@@ -1,8 +1,8 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -26,3 +26,16 @@ auth.useDeviceLanguage();
 export const db = getFirestore(app);
 export const analytics = getAnalytics(app);
 export const storage = getStorage(app);
+
+// local testing - set REACT_APP_USE_EMULATOR=true in .env.development.local and
+// run the firebase emulators from the backend repo, so production data is not touched
+if (process.env.REACT_APP_USE_EMULATOR === 'true') {
+  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099');
+}
+
+// API base URL for Cloud Functions
+export const FUNCTIONS_BASE_URL =
+  process.env.REACT_APP_USE_EMULATOR === 'true'
+    ? 'http://127.0.0.1:5001/agan-adhigaram/us-central1'
+    : 'https://us-central1-agan-adhigaram.cloudfunctions.net';

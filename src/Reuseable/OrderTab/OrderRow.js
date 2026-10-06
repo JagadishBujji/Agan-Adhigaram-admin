@@ -19,7 +19,11 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import { Button, Card, Stack, Chip, Tooltip, CircularProgress } from '@mui/material';
 import { db } from '../../services/firebase';
 import { successNotification, errorNotification } from '../../utils/notification';
-import ModalTwoInputs from '../Modal/ModalTwoInputs';
+import LogisticsModal from '../Modal/LogisticsModal';
+import { addLogisticPartner } from '../../api/appMeta';
+import { formatLogistics } from '../../utils/logistics';
+import { formatAddress, isDeliveredToOtherPerson } from '../../utils/address';
+import { formatDate } from '../../utils/preorder';
 import classes from './OrderTable.module.css';
 
 // API base URL for Cloud Functions
@@ -157,11 +161,18 @@ export default function OrderRow({
       } else if (status === 'delivered') {
         updatedData.delivered_timestamp = new Date().getTime();
       }
-      if (data && (data.input1 || data.input2)) {
+      if (data && data.name) {
         updatedData.logistics = {
-          name: data.input1,
-          number: data.input2,
+          name: data.name,
+          number: data.number,
+          tracking_url: data.tracking_url,
         };
+        if (data.isNewPartner) {
+          // save the new partner, so it is suggested for the next orders
+          addLogisticPartner({ name: data.name, tracking_url: data.tracking_url }).catch((e) =>
+            console.log('add logistic partner: ', e)
+          );
+        }
       }
       updateDoc(orderDetail, updatedData)
         .then(() => {
@@ -173,7 +184,10 @@ export default function OrderRow({
             closeModal();
           }
         })
-        .catch((e) => console.log(e));
+        .catch((e) => {
+          console.log(e);
+          errorNotification(e.message || 'Failed to update the order');
+        });
     }
   };
 
@@ -226,17 +240,13 @@ export default function OrderRow({
         <TableCell align="left">{order.userDetail.phone}</TableCell>
 
         {/* Extra Columns for OrderHistory */}
-        {showExtraColumns && <TableCell align="left">{order.userDetail.address}</TableCell>}
+        {showExtraColumns && <TableCell align="left">{formatAddress(order.userDetail)}</TableCell>}
 
         {/* Time */}
         <TableCell align="left">{getDisplayTime()}</TableCell>
 
         {/* Extra Columns for OrderHistory */}
-        {showExtraColumns && (
-          <TableCell align="left" style={{ textTransform: 'capitalize' }}>
-            {order.logistics ? `${order.logistics.name}-${order.logistics.number}` : 'NIL'}
-          </TableCell>
-        )}
+        {showExtraColumns && <TableCell align="left">{formatLogistics(order.logistics)}</TableCell>}
         {showExtraColumns && <TableCell align="left">{order.total_qty}</TableCell>}
 
         {/* Total Price */}
@@ -254,6 +264,15 @@ export default function OrderRow({
               fontSize: '0.75rem',
             }}
           />
+          {order.has_preorder && order.status === 'booked' && (
+            <Chip
+              label={
+                order.expected_delivery_date ? `PRE-ORDER - ${formatDate(order.expected_delivery_date)}` : 'PRE-ORDER'
+              }
+              size="small"
+              sx={{ mt: 0.5, backgroundColor: '#9F3239', color: '#fff', fontWeight: 600, fontSize: '0.7rem' }}
+            />
+          )}
         </TableCell>
 
         {/* Expand Button */}
@@ -345,13 +364,9 @@ export default function OrderRow({
 
                   {/* Status Action Buttons */}
                   {showStatusActions && order.status === 'booked' && (
-                    <ModalTwoInputs
+                    <LogisticsModal
                       title="Logistics Details"
                       btnTitle="Dispatched"
-                      label1="Logistic Name"
-                      label2="Logistic Number (Tracking No.)"
-                      updateOrders={updateOrders}
-                      order={order}
                       handleSubmit={(inputs, closeModal) => {
                         updateStatus(inputs, 'dispatched', closeModal);
                       }}
@@ -369,18 +384,27 @@ export default function OrderRow({
                 <Stack direction="row" justifyContent="space-between" alignItems="center" marginBottom="10px">
                   <Card sx={{ padding: '10px', mb: 1, width: '100%' }}>
                     <Typography>
-                      <b className={classes.addres}>Address :</b>
+                      <b className={classes.addres}>Deliver To :</b>
                       <span>
-                        {order.userDetail.address}
-                        {order.userDetail.city && `, ${order.userDetail.city}`}
-                        {order.userDetail.state && `, ${order.userDetail.state}`}
-                        {order.userDetail.country && `, ${order.userDetail.country}`}
-                        {order.userDetail.pincode && ` - ${order.userDetail.pincode}`}
+                        {order.userDetail.name}, {order.userDetail.phone}
+                        {order.shipping_address?.label && ` (${order.shipping_address.label})`}
                       </span>
                     </Typography>
                     <Typography>
+                      <b className={classes.addres}>Address :</b>
+                      <span>{formatAddress(order.userDetail)}</span>
+                    </Typography>
+                    {isDeliveredToOtherPerson(order) && (
+                      <Typography>
+                        <b className={classes.addres}>Ordered By :</b>
+                        <span>
+                          {order.ordered_by.name}, {order.ordered_by.phone} ({order.userDetail.email})
+                        </span>
+                      </Typography>
+                    )}
+                    <Typography>
                       <b className={classes.addres}>Logistics :</b>
-                      <span>{order.logistics ? `${order.logistics.name}-${order.logistics.number}` : 'NIL'}</span>
+                      <span>{formatLogistics(order.logistics)}</span>
                     </Typography>
                     <Typography>
                       <b className={classes.addres}>Total Quantity :</b>
@@ -413,7 +437,9 @@ export default function OrderRow({
                               <span>{order.dispatched_timestamp ? customTime(order.dispatched_timestamp) : ''}</span>
                             </p>
                           </div>
-                          <div className={`${classes.orderTracking} ${order.status === 'delivered' && classes.completed}`}>
+                          <div
+                            className={`${classes.orderTracking} ${order.status === 'delivered' && classes.completed}`}
+                          >
                             <span className={classes.isComplete}></span>
                             <p>
                               Delivered <br />
@@ -445,6 +471,14 @@ export default function OrderRow({
                     <TableRow key={book.id}>
                       <TableCell component="th" scope="row">
                         {book.title}({book.title_tamil})
+                        {book.is_preorder && (
+                          <Typography variant="body2" sx={{ color: '#9F3239', fontWeight: 600 }}>
+                            Pre-order
+                            {book.expected_delivery_date
+                              ? ` - Expected ${formatDate(book.expected_delivery_date)}`
+                              : ''}
+                          </Typography>
+                        )}
                       </TableCell>
                       <TableCell>{book.genre}</TableCell>
                       <TableCell align="right">{book.author}</TableCell>

@@ -5,6 +5,7 @@ import { styled } from '@mui/material/styles';
 
 import classes from './BookCard.module.css';
 import MenuIcon from 'src/Reuseable/MenuIcon/MenuIcon';
+import { formatDate } from 'src/utils/preorder';
 
 // ----------------------------------------------------------------------
 
@@ -79,6 +80,12 @@ export default function BookCard({ book, setShowModal, setBookHandler }) {
         <Stack direction="row" alignItems="center">
           Stock: {stock}
         </Stack>
+        {book.is_preorder && (
+          <Stack direction="row" alignItems="center" sx={{ color: '#9F3239', fontWeight: 600 }}>
+            Pre-order: {book.preorder_count || 0} copies
+            {book.expected_delivery_date ? ` - Expected ${formatDate(book.expected_delivery_date)}` : ''}
+          </Stack>
+        )}
       </Stack>
     </Card>
   );

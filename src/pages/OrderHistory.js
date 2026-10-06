@@ -25,6 +25,8 @@ import { UserListToolbar } from '../sections/@dashboard/user';
 import OrderRow from 'src/Reuseable/OrderTab/OrderRow';
 import { collection, getDocs, query, where, orderBy as OB } from 'firebase/firestore';
 import { db } from '../services/firebase';
+import { formatLogistics } from '../utils/logistics';
+import { formatAddress } from '../utils/address';
 
 // ----------------------------------------------------------------------
 
@@ -160,7 +162,7 @@ export default function OrderHistroy() {
       'Order Id': order.id,
       Name: order.userDetail.name,
       Phone: order.userDetail.phone,
-      Address: `${order.userDetail.address}`,
+      Address: formatAddress(order.userDetail),
       'Ordered DateTime': new Date(order.ordered_timestamp).toLocaleString('en-IN', {
         day: '2-digit',
         month: '2-digit',
@@ -169,7 +171,7 @@ export default function OrderHistroy() {
         minute: '2-digit',
         hour12: true,
       }),
-      Logistics: order.logistics,
+      Logistics: formatLogistics(order.logistics),
       Quantity: order.total_qty,
       'Total Price(+ delivery fee)': `Rs. ${order.total_price}`,
       Status: order.status,

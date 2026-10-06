@@ -19,6 +19,8 @@ import BasicSelect from '../Select/Select';
 import { errorNotification, successNotification } from '../../utils/notification';
 import UploadedImage from './UploadedImage';
 import { setLoading } from '../../store/userSlice';
+import { auth, FUNCTIONS_BASE_URL } from '../../services/firebase';
+import { formatDate, getPreorderFields, toDateInputValue, validatePreorder } from '../../utils/preorder';
 
 const style = {
   position: 'absolute',
@@ -47,7 +49,11 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
   const [bookUpdated, setBookUpdated] = useState({
     is_available: false,
     related_books: [],
+    is_preorder: false,
+    expected_delivery_date: '',
+    preorder_remark: '',
   });
+  const [isNotifying, setIsNotifying] = useState(false);
   const [genres, setGenres] = useState([]);
   const [selectedfile, SetSelectedFile] = useState([]);
   const [deletedImages, setDeletedImages] = useState([]);
@@ -98,6 +104,9 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
           datePublished.getDate()
         )}`,
         related_books: relArr,
+        is_preorder: Boolean(book.is_preorder),
+        expected_delivery_date: toDateInputValue(book.expected_delivery_date),
+        preorder_remark: book.preorder_remark || '',
       };
       console.log('updated book: ', updatedBook);
       setBookUpdated(updatedBook);
@@ -172,6 +181,9 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
     if (name === 'is_available') {
       value = !bookUpdated.is_available;
     }
+    if (name === 'is_preorder') {
+      value = !bookUpdated.is_preorder;
+    }
     setBookUpdated((prevState) => ({
       ...prevState,
       [name]: value,
@@ -245,6 +257,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
                 const { value, label, id, ...rest } = book;
                 return id;
               }),
+              ...getPreorderFields(bookUpdated),
             };
             console.log('update: ', updatedDoc, book.id);
             setDoc(doc(db, 'books', book.id), updatedDoc)
@@ -333,6 +346,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
               title_tamil: bookUpdated.title_tamil,
               is_available: bookUpdated.is_available,
               related_books: relatedBooks,
+              ...getPreorderFields(bookUpdated),
             })
               .then((doc) => {
                 updateBooks({
@@ -340,6 +354,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
                   ...bookUpdated,
                   images: [...imgUrls],
                   related_books: relatedBooks,
+                  ...getPreorderFields(bookUpdated),
                 });
                 dispatch(setLoading(false));
                 successNotification('Successfully stored new book!!!');
@@ -362,6 +377,40 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
         dispatch(setLoading(false));
         errorNotification(e.message);
       });
+  };
+
+  // mail the expected delivery date and remark to the customers who pre-ordered this book
+  const notifyPreorderCustomers = async () => {
+    const savedDate = formatDate(book.expected_delivery_date);
+    const confirmation = window.confirm(
+      `Send the pre-order update mail to the customers who pre-ordered this book?\n\nExpected delivery: ${savedDate}\nRemark: ${
+        book.preorder_remark || '-'
+      }\n\nSaved details are sent. Publish first, if you have changed the date or remark now.`
+    );
+    if (!confirmation) return;
+
+    setIsNotifying(true);
+    try {
+      const response = await fetch(`${FUNCTIONS_BASE_URL}/notifyPreorderCustomers`, {
+        method: 'POST',
+        // only a logged in admin is allowed to mail the customers
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await auth.currentUser.getIdToken()}` },
+        body: JSON.stringify({ bookId: book.id }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send the pre-order update');
+      }
+      successNotification(
+        data.sent === 0 && data.failed === 0
+          ? 'No customer has pre-ordered this book yet.'
+          : `Pre-order update sent to ${data.sent} customer(s)${data.failed ? `, failed for ${data.failed}` : ''}.`
+      );
+    } catch (e) {
+      errorNotification(e.message || 'Failed to send the pre-order update');
+    } finally {
+      setIsNotifying(false);
+    }
   };
 
   const saveHandler = (type) => {
@@ -395,6 +444,8 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
       ? errorNotification('Invalid Pages')
       : bookUpdated.reading_age === ''
       ? errorNotification('Invalid Reading Age')
+      : validatePreorder(bookUpdated)
+      ? errorNotification(validatePreorder(bookUpdated))
       : // : images.length === 0
       // ? errorNotification('Images are mandatory, please choose 6 images & upload it')
       selectedfile.length < 6
@@ -539,6 +590,63 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
                       Available
                     </Typography>
                   </Grid>
+                  <Grid item xs={12} md={12}>
+                    <Typography
+                      sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}
+                    >
+                      <Checkbox
+                        name="is_preorder"
+                        inputProps={{ 'aria-label': 'Pre-order book' }}
+                        onChange={onChangeHandler}
+                        checked={Boolean(bookUpdated.is_preorder)}
+                      />
+                      Pre-order (new book, not released yet)
+                    </Typography>
+                  </Grid>
+                  {bookUpdated.is_preorder && (
+                    <>
+                      <Grid item xs={12} md={6}>
+                        <Item>
+                          <TextField
+                            fullWidth
+                            label="Expected Delivery Date"
+                            variant="outlined"
+                            name="expected_delivery_date"
+                            type="date"
+                            InputLabelProps={{ shrink: true }}
+                            onChange={onChangeHandler}
+                            value={bookUpdated.expected_delivery_date || ''}
+                            required
+                          />
+                        </Item>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Item>
+                          <TextField
+                            fullWidth
+                            label="Pre-order Remark"
+                            placeholder="Shown to customers and sent in the mail"
+                            variant="outlined"
+                            name="preorder_remark"
+                            type="text"
+                            onChange={onChangeHandler}
+                            value={bookUpdated.preorder_remark || ''}
+                          />
+                        </Item>
+                      </Grid>
+                      {book?.is_preorder && (
+                        <Grid item xs={12} md={12}>
+                          <Button variant="outlined" onClick={notifyPreorderCustomers} disabled={isNotifying}>
+                            {isNotifying ? 'Sending...' : 'Notify pre-order customers'}
+                          </Button>
+                          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                            Pre-ordered so far: {book.preorder_count || 0} copies. Sends the saved expected delivery
+                            date and remark by mail.
+                          </Typography>
+                        </Grid>
+                      )}
+                    </>
+                  )}
                   <Grid item md={12}>
                     <Item>
                       <TextField
