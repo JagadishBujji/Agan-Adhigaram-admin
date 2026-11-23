@@ -87,7 +87,7 @@ export default function BookManagement() {
     const target = bookToDelete;
     setDeleting(true);
     try {
-      const result = await deleteBookWithImages(target, books);
+      const result = await deleteBookWithImages(target);
       if (!result.deleted) {
         errorNotification(
           `"${target.title}" is in ${result.orderCount} order(s), so it can't be deleted (customers see its picture in their orders). Untick "Available" to hide it instead.`
@@ -167,9 +167,9 @@ export default function BookManagement() {
           <DialogTitle>Delete this book?</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              &quot;{bookToDelete?.title}&quot; and its {bookToDelete?.images?.length || 0} images will be deleted
-              permanently. A book that is in any order can&apos;t be deleted: untick &quot;Available&quot; to hide it
-              instead.
+              &quot;{bookToDelete?.title}&quot; will be deleted permanently, with its {bookToDelete?.images?.length || 0}{' '}
+              images (a developer can restore images for 7 days). A book that is in any order can&apos;t be deleted:
+              untick &quot;Available&quot; to hide it instead.
             </DialogContentText>
           </DialogContent>
           <DialogActions>

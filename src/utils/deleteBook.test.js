@@ -57,6 +57,7 @@ describe('deleteBook', () => {
     return {
       log,
       isAvailableNow: jest.fn(async () => true),
+      loadBooks: jest.fn(async () => books),
       hideBook: jest.fn(async (id) => log.push(`hide ${id}`)),
       restoreBook: jest.fn(async (id) => log.push(`restore ${id}`)),
       loadOrders: jest.fn(async () => {
@@ -71,7 +72,7 @@ describe('deleteBook', () => {
 
   it('hides the book before checking orders, then unlinks, deletes it and its images', async () => {
     const s = steps();
-    const result = await deleteBook(testBook, books, s);
+    const result = await deleteBook(testBook, s);
     expect(result).toEqual({ deleted: true, imagesDeleted: 2, imagesFailed: 0 });
     expect(s.log).toEqual([
       'hide b1',
@@ -86,15 +87,24 @@ describe('deleteBook', () => {
   it('puts an ordered book back as it was and deletes nothing', async () => {
     const s = steps();
     s.loadOrders.mockResolvedValue([{ ordered_books: [{ id: 'b1' }] }]);
-    expect(await deleteBook(testBook, books, s)).toEqual({ deleted: false, orderCount: 1 });
+    expect(await deleteBook(testBook, s)).toEqual({ deleted: false, orderCount: 1 });
     expect(s.log).toEqual(['hide b1', 'restore b1']);
   });
 
+  it('plans with the books in the database, not the page', async () => {
+    const s = steps();
+    // since the page loaded: another book now uses image b and links to this book
+    const nowSharing = { id: 'b4', images: [testBook.images[1]], related_books: ['b1'] };
+    s.loadBooks.mockResolvedValue([testBook, nowSharing]);
+    expect(await deleteBook(testBook, s)).toEqual({ deleted: true, imagesDeleted: 1, imagesFailed: 0 });
+    expect(s.log).toEqual(['hide b1', 'check orders', 'unlink b4', 'delete b1', 'file images/books/TEST-1/a.png']);
+  });
+
   it('puts the book back on sale when a step fails before it is deleted', async () => {
-    for (const failing of ['hideBook', 'loadOrders', 'removeRelated', 'deleteBookDoc']) {
+    for (const failing of ['hideBook', 'loadOrders', 'loadBooks', 'removeRelated', 'deleteBookDoc']) {
       const s = steps();
       s[failing].mockRejectedValueOnce(new Error('network'));
-      await expect(deleteBook(testBook, books, s)).rejects.toThrow('network');
+      await expect(deleteBook(testBook, s)).rejects.toThrow('network');
       expect(s.restoreBook).toHaveBeenCalledWith('b1');
     }
   });
@@ -103,7 +113,7 @@ describe('deleteBook', () => {
     const s = steps();
     s.isAvailableNow.mockResolvedValue(false); // another admin hid it after this page loaded
     s.loadOrders.mockResolvedValue([{ ordered_books: [{ id: 'b1' }] }]);
-    await deleteBook({ ...testBook, is_available: true }, books, s);
+    await deleteBook({ ...testBook, is_available: true }, s);
     expect(s.hideBook).not.toHaveBeenCalled();
     expect(s.restoreBook).not.toHaveBeenCalled();
   });
@@ -111,6 +121,6 @@ describe('deleteBook', () => {
   it('reports images that could not be removed, the book is still deleted', async () => {
     const s = steps();
     s.deleteFile.mockRejectedValueOnce(new Error('denied'));
-    expect(await deleteBook(testBook, books, s)).toEqual({ deleted: true, imagesDeleted: 1, imagesFailed: 1 });
+    expect(await deleteBook(testBook, s)).toEqual({ deleted: true, imagesDeleted: 1, imagesFailed: 1 });
   });
 });
