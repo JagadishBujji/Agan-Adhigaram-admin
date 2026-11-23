@@ -57,7 +57,9 @@ export async function deleteBook(
     if (wasAvailable) await hideBook(book.id);
     const orders = await loadOrders();
     const books = await loadBooks();
-    plan = planBookDeletion(book, books, orders);
+    // the book as it is now (another admin may have changed its images)
+    const current = books.find((b) => b.id === book.id) || book;
+    plan = planBookDeletion(current, books, orders);
     if (!plan.blocked) {
       for (const otherId of plan.linkedFrom) {
         await removeRelated(otherId, book.id);

@@ -53,20 +53,20 @@ export default function BookManagement() {
   //   setOpenFilter(false);
   // };
 
+  const getBooks = () => {
+    const booksRef = collection(db, 'books');
+    getDocs(booksRef)
+      .then((snapshot) => {
+        const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+        setBooks(docs);
+      })
+      .catch((error) => {
+        console.log('Error getting categories:', error);
+      });
+  };
+
   useEffect(() => {
-    const getBooks = () => {
-      const booksRef = collection(db, 'books');
-      getDocs(booksRef)
-        .then((snapshot) => {
-          const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
-          setBooks(docs);
-        })
-        .catch((error) => {
-          console.log('Error getting categories:', error);
-        });
-    };
-
     getBooks();
   }, []);
 
@@ -93,15 +93,6 @@ export default function BookManagement() {
           `"${target.title}" is in ${result.orderCount} order(s), so it can't be deleted (customers see its picture in their orders). Untick "Available" to hide it instead.`
         );
       } else {
-        setBooks((prev) =>
-          prev
-            .filter((b) => b.id !== target.id)
-            .map((b) =>
-              (b.related_books || []).includes(target.id)
-                ? { ...b, related_books: b.related_books.filter((id) => id !== target.id) }
-                : b
-            )
-        );
         if (result.imagesFailed > 0) {
           errorNotification(`"${target.title}" deleted, but ${result.imagesFailed} image(s) could not be removed.`);
         } else {
@@ -116,6 +107,9 @@ export default function BookManagement() {
     } finally {
       setDeleting(false);
       setBookToDelete(null);
+      // reload from the database: the delete may have changed other books (related
+      // links) or this book's availability, and this page's copies may be old
+      getBooks();
     }
   };
 

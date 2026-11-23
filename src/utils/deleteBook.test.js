@@ -100,6 +100,14 @@ describe('deleteBook', () => {
     expect(s.log).toEqual(['hide b1', 'check orders', 'unlink b4', 'delete b1', 'file images/books/TEST-1/a.png']);
   });
 
+  it('deletes the images the book has now, not the ones the page showed', async () => {
+    const s = steps();
+    const extra = url('images/books/TEST-1/c.png'); // added by another admin after the page loaded
+    s.loadBooks.mockResolvedValue([{ ...testBook, images: [...testBook.images, extra] }, otherBook]);
+    expect(await deleteBook(testBook, s)).toEqual({ deleted: true, imagesDeleted: 3, imagesFailed: 0 });
+    expect(s.deleteFile).toHaveBeenCalledWith('images/books/TEST-1/c.png');
+  });
+
   it('puts the book back on sale when a step fails before it is deleted', async () => {
     for (const failing of ['hideBook', 'loadOrders', 'loadBooks', 'removeRelated', 'deleteBookDoc']) {
       const s = steps();
