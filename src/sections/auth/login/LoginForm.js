@@ -56,11 +56,11 @@ export default function LoginForm() {
         `If an account exists for ${email}, a password reset link has been sent. Please check your inbox and spam folder.`
       );
     } catch (err) {
-      errorNotification(
-        err.code === 'auth/too-many-requests'
-          ? 'Too many requests. Please try again later.'
-          : 'Please enter a valid email address.'
-      );
+      const messages = {
+        'auth/too-many-requests': 'Too many requests. Please try again later.',
+        'auth/invalid-email': 'Please enter a valid email address.',
+      };
+      errorNotification(messages[err.code] || 'Could not send the reset email. Please try again later.');
     } finally {
       setSendingReset(false);
     }
