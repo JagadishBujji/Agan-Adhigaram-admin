@@ -18,6 +18,7 @@ import { isNumeric, isValidDate, isValidName } from '../../utils/validation';
 import BasicSelect from '../Select/Select';
 import { errorNotification, successNotification } from '../../utils/notification';
 import UploadedImage from './UploadedImage';
+import { withTimeout } from '../../utils/upload';
 import { setLoading } from '../../store/userSlice';
 import { auth, FUNCTIONS_BASE_URL } from '../../services/firebase';
 import { formatDate, getPreorderFields, toDateInputValue, validatePreorder } from '../../utils/preorder';
@@ -47,6 +48,7 @@ const Item = styled(Paper)(({ theme }) => ({
 export default function BookModal({ books, showModal, closeModal, book, updateBooks }) {
   const dispatch = useDispatch();
   const [bookUpdated, setBookUpdated] = useState({
+    amazon_link: '',
     is_available: false,
     related_books: [],
     is_preorder: false,
@@ -206,7 +208,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
         console.log('folderStorageName: ', folderStorageName);
         const storageRef = ref(storage, `/images/books/${folderStorageName}/` + imgObj.filename);
         storageRefPromises.push(storageRef);
-        storageNewUrlPromises.push(uploadBytes(storageRef, imgObj.file));
+        storageNewUrlPromises.push(withTimeout(uploadBytes(storageRef, imgObj.file)));
       }
     });
 
@@ -232,7 +234,8 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
 
             const updatedDoc = {
               ...bookUpdated,
-              amazon_link: bookUpdated.amazon_link,
+              // optional field - firestore rejects undefined, which failed add/publish when left empty
+              amazon_link: bookUpdated.amazon_link || '',
               author: bookUpdated.author,
               book_format: bookUpdated.book_format,
               book_id: '',
@@ -305,7 +308,7 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
     selectedfile.forEach((img) => {
       const storageRef = ref(storage, `/images/books/${bookUpdated.title}-${timestamp}/` + img.filename);
       storageRefPromises.push(storageRef);
-      storagePromises.push(uploadBytes(storageRef, img.file));
+      storagePromises.push(withTimeout(uploadBytes(storageRef, img.file)));
     });
     Promise.all(storagePromises)
       .then((res) => {
@@ -324,7 +327,8 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
               return id;
             });
             addDoc(collection(db, 'books'), {
-              amazon_link: bookUpdated.amazon_link,
+              // optional field - firestore rejects undefined, which failed add/publish when left empty
+              amazon_link: bookUpdated.amazon_link || '',
               author: bookUpdated.author,
               book_format: bookUpdated.book_format,
               book_id: '',
@@ -426,6 +430,8 @@ export default function BookModal({ books, showModal, closeModal, book, updateBo
       ? errorNotification('Invalid Price')
       : !isNumeric(bookUpdated.discount_price)
       ? errorNotification('Invalid Discounted Price')
+      : parseFloat(bookUpdated.discount_price) > parseFloat(bookUpdated.mrp_price)
+      ? errorNotification('Discounted Price cannot be more than the Price')
       : !isNumeric(bookUpdated.stock)
       ? errorNotification('Invalid Stock')
       : bookUpdated.description === ''

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import './UploadedImage.css';
 import { errorNotification } from '../../utils/notification';
+import { addImagesWithinLimit, MAX_BOOK_IMAGES } from '../../utils/upload';
 
-const 
-UploadedImage = ({ selectedfile, SetSelectedFile, setDeletedImages }) => {
+const UploadedImage = ({ selectedfile, SetSelectedFile, setDeletedImages }) => {
   const [Files, SetFiles] = useState([]);
 
   const filesizes = (bytes, decimals = 2) => {
@@ -15,38 +15,36 @@ UploadedImage = ({ selectedfile, SetSelectedFile, setDeletedImages }) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   };
 
-  const InputChange = (e) => {
-    // --For Multiple File Input
-    let images = [];
-    for (let i = 0; i < e.target.files.length; i++) {
-      images.push(e.target.files[i]);
-      let reader = new FileReader();
-      let file = e.target.files[i];
-      reader.onloadend = () => {
-        SetSelectedFile((preValue) => {
-          console.log('prevValue: ', preValue);
-          if (preValue.length === 6) {
-            errorNotification('Only 6 images should be uploaded');
-            return [...preValue];
-          } else {
-            return [
-              ...preValue,
-              {
-                id: new Date().getTime() + i,
-                filename: e.target.files[i].name,
-                filetype: e.target.files[i].type,
-                fileimage: reader.result,
-                file: file,
-                datetime: e.target.files[i].lastModifiedDate.toLocaleString('en-IN'),
-                filesize: filesizes(e.target.files[i].size),
-              },
-            ];
-          }
+  const readFile = (file, index) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () =>
+        resolve({
+          id: new Date().getTime() + index,
+          filename: file.name,
+          filetype: file.type,
+          fileimage: reader.result,
+          file,
+          datetime: new Date(file.lastModified).toLocaleString('en-IN'),
+          filesize: filesizes(file.size),
         });
-      };
-      if (e.target.files[i]) {
-        reader.readAsDataURL(file);
-      }
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+
+  const InputChange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    // lets the same file be picked again after it is removed
+    e.target.value = '';
+    if (files.length === 0) return;
+    try {
+      // all files are read first and added in one update, so the 6 image limit cannot be skipped
+      const added = await Promise.all(files.map(readFile));
+      const { images, dropped } = addImagesWithinLimit(selectedfile, added);
+      SetSelectedFile(images);
+      if (dropped) errorNotification(`Only ${MAX_BOOK_IMAGES} images should be uploaded`);
+    } catch (err) {
+      errorNotification('Could not read the image. Please try another file.');
     }
   };
 
@@ -111,6 +109,7 @@ UploadedImage = ({ selectedfile, SetSelectedFile, setDeletedImages }) => {
                         id="fileupload"
                         className="file-upload-input"
                         onChange={InputChange}
+                        accept="image/*"
                         multiple
                       />
                       <span>
