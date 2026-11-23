@@ -8,7 +8,7 @@ import { Link, Stack, IconButton, InputAdornment, TextField, Checkbox } from '@m
 import { LoadingButton } from '@mui/lab';
 // components
 import Iconify from '../../../components/iconify';
-import { RecaptchaVerifier, getAuth, signInWithEmailAndPassword, signInWithPhoneNumber } from 'firebase/auth';
+import { RecaptchaVerifier, getAuth, signInWithEmailAndPassword, signInWithPhoneNumber, signOut } from 'firebase/auth';
 import classes from './LoginForm.module.css';
 import { getUserById } from 'src/api/user';
 import { errorNotification, successNotification } from 'src/utils/notification';
@@ -49,15 +49,16 @@ export default function LoginForm() {
           console.log('user:', user.uid);
           getUserById(user.uid, (result) => {
             console.log('userDetails', result);
-            const role = result.data.role;
             if (result.success) {
-              if (role === 'admin') {
+              if (result.data.role === 'admin') {
                 successNotification(result.message);
                 dispatch(login(result.data))
                 console.log('user',user)
                 navigate('/dashboard/app', { replace: true });
               } else {
-                errorNotification('You dont have access');
+                // a customer account stayed signed in before and could open /dashboard directly;
+                // the auth listener in routes.js shows the "no admin access" message
+                signOut(auth);
               }
             } else {
               errorNotification(result.err.message);
