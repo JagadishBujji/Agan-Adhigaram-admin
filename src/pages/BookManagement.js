@@ -1,9 +1,10 @@
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
-import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+import { collection, getDocsFromServer } from 'firebase/firestore';
 // @mui
 import {
+  Alert,
   Container,
   Dialog,
   DialogActions,
@@ -32,6 +33,8 @@ export default function BookManagement() {
   const [showModal, setShowModal] = useState(false);
   const [bookToDelete, setBookToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  // the list could not be loaded: nothing is shown, so no old copy of a book can be edited and saved back
+  const [listError, setListError] = useState(false);
 
   const setBookHandler = (book) => {
     setBook(book);
@@ -53,17 +56,23 @@ export default function BookManagement() {
   //   setOpenFilter(false);
   // };
 
-  const getBooks = () => {
-    const booksRef = collection(db, 'books');
-    getDocs(booksRef)
-      .then((snapshot) => {
-        const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
-        setBooks(docs);
-      })
-      .catch((error) => {
-        console.log('Error getting categories:', error);
-      });
+  const getBooks = async () => {
+    try {
+      // from the server only: offline, getDocs answers from the cache (maybe an empty
+      // or old list); and give up after 15 s rather than wait without a message
+      const snapshot = await Promise.race([
+        getDocsFromServer(collection(db, 'books')),
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('timed out')), 15000);
+        }),
+      ]);
+      setBooks(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      setListError(false);
+    } catch (error) {
+      console.log('Error getting books:', error);
+      setBooks([]);
+      setListError(true);
+    }
   };
 
   useEffect(() => {
@@ -105,11 +114,11 @@ export default function BookManagement() {
         `Could not delete "${target.title}". Please try again. If it no longer shows on the shop, edit it and tick "Available".`
       );
     } finally {
+      // reload from the database before anything can be edited again: the delete may
+      // have changed other books (related links) or this book's availability
+      await getBooks();
       setDeleting(false);
       setBookToDelete(null);
-      // reload from the database: the delete may have changed other books (related
-      // links) or this book's availability, and this page's copies may be old
-      getBooks();
     }
   };
 
@@ -149,6 +158,19 @@ export default function BookManagement() {
         </Stack> */}
 
         {/* <ProductList products={PRODUCTS} /> */}
+        {listError && (
+          <Alert
+            severity="error"
+            sx={{ mb: 3 }}
+            action={
+              <Button color="inherit" size="small" onClick={getBooks}>
+                Try again
+              </Button>
+            }
+          >
+            Could not load the books. Check the connection and try again.
+          </Alert>
+        )}
         <BookList
           books={books}
           setShowModal={setShowModal}
