@@ -2,6 +2,9 @@
 // place in other books' "related books" (the website would fail to show those).
 // A book that was ever ordered is not deleted: customers' order history shows
 // its picture from these image files. Hide it instead (untick "Available").
+// The book is hidden before the orders are checked: the website writes an order
+// before starting payment, and the payment server refuses hidden books, so no
+// paid order can contain the book without being seen by the check.
 
 const BOOK_IMAGES = 'images/books/';
 
@@ -24,28 +27,46 @@ export function planBookDeletion(book, books, orders) {
   if (orderCount > 0) return { blocked: true, orderCount };
 
   const others = books.filter((other) => other.id !== book.id);
-  const usedElsewhere = new Set(others.flatMap((other) => other.images || []));
+  // compared by file, not link: two links (other token) can point to one file
+  const usedElsewhere = new Set(others.flatMap((other) => (other.images || []).map(storagePathFromUrl)));
   const imagePaths = [
-    ...new Set(
-      (book.images || []).filter((image) => !usedElsewhere.has(image)).map(storagePathFromUrl).filter(Boolean)
-    ),
+    ...new Set((book.images || []).map(storagePathFromUrl).filter((path) => path && !usedElsewhere.has(path))),
   ];
   const linkedFrom = others.filter((other) => (other.related_books || []).includes(book.id)).map((other) => other.id);
 
   return { blocked: false, imagePaths, linkedFrom };
 }
 
-// steps: { loadOrders, removeRelated(otherBookId, bookId), deleteBookDoc(bookId), deleteFile(path) }
-// Order matters: links first (a link to a missing book breaks a page), then the
-// book, then the images (a leftover image file harms nothing).
-export async function deleteBook(book, books, { loadOrders, removeRelated, deleteBookDoc, deleteFile }) {
-  const plan = planBookDeletion(book, books, await loadOrders());
-  if (plan.blocked) return { deleted: false, orderCount: plan.orderCount };
+// steps: { hideBook(bookId), restoreBook(bookId), loadOrders, removeRelated(otherBookId, bookId),
+//          deleteBookDoc(bookId), deleteFile(path) }
+// Order matters: hide, check orders, links (a link to a missing book breaks a
+// page), the book, then the images (a leftover image file harms nothing).
+export async function deleteBook(
+  book,
+  books,
+  { hideBook, restoreBook, loadOrders, removeRelated, deleteBookDoc, deleteFile }
+) {
+  const wasAvailable = book.is_available !== false;
+  if (wasAvailable) await hideBook(book.id);
 
-  for (const otherId of plan.linkedFrom) {
-    await removeRelated(otherId, book.id);
+  // until the book itself is deleted, any refusal or failure puts it back on sale
+  let plan;
+  try {
+    plan = planBookDeletion(book, books, await loadOrders());
+    if (!plan.blocked) {
+      for (const otherId of plan.linkedFrom) {
+        await removeRelated(otherId, book.id);
+      }
+      await deleteBookDoc(book.id);
+    }
+  } catch (e) {
+    if (wasAvailable) await restoreBook(book.id).catch(() => {});
+    throw e;
   }
-  await deleteBookDoc(book.id);
+  if (plan.blocked) {
+    if (wasAvailable) await restoreBook(book.id);
+    return { deleted: false, orderCount: plan.orderCount };
+  }
 
   let imagesDeleted = 0;
   let imagesFailed = 0;

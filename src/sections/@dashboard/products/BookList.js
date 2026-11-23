@@ -8,6 +8,7 @@ import BookCard from './BookCard';
 BookList.propTypes = {
   categories: PropTypes.array.isRequired,
   books: PropTypes.object,
+  onDelete: PropTypes.func,
 };
 
 export default function BookList({ books, setShowModal, setBookHandler, onDelete, ...other }) {

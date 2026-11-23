@@ -6,6 +6,8 @@ import { deleteBook } from 'src/utils/deleteBook';
 // Deletes a book, its images and its "related books" links (see utils/deleteBook)
 const deleteBookWithImages = (book, books) =>
   deleteBook(book, books, {
+    hideBook: (bookId) => updateDoc(doc(db, 'books', bookId), { is_available: false }),
+    restoreBook: (bookId) => updateDoc(doc(db, 'books', bookId), { is_available: true }),
     loadOrders: async () => (await getDocs(collection(db, 'orders'))).docs.map((d) => d.data()),
     removeRelated: (otherId, bookId) => updateDoc(doc(db, 'books', otherId), { related_books: arrayRemove(bookId) }),
     deleteBookDoc: (bookId) => deleteDoc(doc(db, 'books', bookId)),

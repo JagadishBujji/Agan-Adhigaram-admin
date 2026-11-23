@@ -44,8 +44,9 @@ describe('planBookDeletion', () => {
     });
   });
 
-  it('keeps an image another book also uses', () => {
-    const sharing = { id: 'b3', images: [testBook.images[1]] };
+  it('keeps an image another book also uses, even through a different link', () => {
+    const sameFileOtherToken = testBook.images[1].replace('token=t', 'token=other');
+    const sharing = { id: 'b3', images: [sameFileOtherToken] };
     expect(planBookDeletion(testBook, [...books, sharing], []).imagePaths).toEqual(['images/books/TEST-1/a.png']);
   });
 });
@@ -55,18 +56,25 @@ describe('deleteBook', () => {
     const log = [];
     return {
       log,
-      loadOrders: jest.fn(async () => []),
+      hideBook: jest.fn(async (id) => log.push(`hide ${id}`)),
+      restoreBook: jest.fn(async (id) => log.push(`restore ${id}`)),
+      loadOrders: jest.fn(async () => {
+        log.push('check orders');
+        return [];
+      }),
       removeRelated: jest.fn(async (id) => log.push(`unlink ${id}`)),
       deleteBookDoc: jest.fn(async (id) => log.push(`delete ${id}`)),
       deleteFile: jest.fn(async (path) => log.push(`file ${path}`)),
     };
   };
 
-  it('unlinks, deletes the book, then its images', async () => {
+  it('hides the book before checking orders, then unlinks, deletes it and its images', async () => {
     const s = steps();
     const result = await deleteBook(testBook, books, s);
     expect(result).toEqual({ deleted: true, imagesDeleted: 2, imagesFailed: 0 });
     expect(s.log).toEqual([
+      'hide b1',
+      'check orders',
       'unlink b2',
       'delete b1',
       'file images/books/TEST-1/a.png',
@@ -74,11 +82,27 @@ describe('deleteBook', () => {
     ]);
   });
 
-  it('changes nothing for an ordered book', async () => {
+  it('puts an ordered book back as it was and deletes nothing', async () => {
     const s = steps();
     s.loadOrders.mockResolvedValue([{ ordered_books: [{ id: 'b1' }] }]);
     expect(await deleteBook(testBook, books, s)).toEqual({ deleted: false, orderCount: 1 });
-    expect(s.log).toEqual([]);
+    expect(s.log).toEqual(['hide b1', 'restore b1']);
+  });
+
+  it('puts the book back on sale when a step fails before it is deleted', async () => {
+    for (const failing of ['loadOrders', 'removeRelated', 'deleteBookDoc']) {
+      const s = steps();
+      s[failing].mockRejectedValueOnce(new Error('network'));
+      await expect(deleteBook(testBook, books, s)).rejects.toThrow('network');
+      expect(s.restoreBook).toHaveBeenCalledWith('b1');
+    }
+  });
+
+  it('leaves an already hidden book hidden when it is refused', async () => {
+    const s = steps();
+    s.loadOrders.mockResolvedValue([{ ordered_books: [{ id: 'b1' }] }]);
+    await deleteBook({ ...testBook, is_available: false }, books, s);
+    expect(s.restoreBook).not.toHaveBeenCalled();
   });
 
   it('reports images that could not be removed, the book is still deleted', async () => {

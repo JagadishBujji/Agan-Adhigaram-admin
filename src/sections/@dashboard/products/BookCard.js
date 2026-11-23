@@ -20,6 +20,7 @@ const StyledProductImg = styled('img')({
 // ----------------------------------------------------------------------
 
 BookCard.propTypes = {
+  onDelete: PropTypes.func,
   category: PropTypes.object,
 };
 

@@ -110,7 +110,9 @@ export default function BookManagement() {
       }
     } catch (e) {
       console.log('delete book error:', e);
-      errorNotification('Could not delete the book. Please try again.');
+      errorNotification(
+        `Could not delete "${target.title}". Please try again. If it no longer shows on the shop, edit it and tick "Available".`
+      );
     } finally {
       setDeleting(false);
       setBookToDelete(null);
