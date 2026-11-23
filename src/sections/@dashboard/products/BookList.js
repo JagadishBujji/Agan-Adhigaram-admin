@@ -10,12 +10,12 @@ BookList.propTypes = {
   books: PropTypes.object,
 };
 
-export default function BookList({ books, setShowModal, setBookHandler, ...other }) {
+export default function BookList({ books, setShowModal, setBookHandler, onDelete, ...other }) {
   return (
     <Grid container spacing={3} {...other}>
       {books?.map((book) => (
         <Grid key={book.id} item xs={12} sm={6} md={3}>
-          <BookCard book={book} setShowModal={setShowModal} setBookHandler={setBookHandler} />
+          <BookCard book={book} setShowModal={setShowModal} setBookHandler={setBookHandler} onDelete={onDelete} />
         </Grid>
       ))}
     </Grid>
