@@ -35,8 +35,9 @@ function isValidPassword(password) {
 }
 
 function isValidName(name) {
-  // Allow letters, digits, spaces, apostrophes, and hyphens
-  const nameRegex = /^[A-Za-z0-9\s'-]+$/;
+  // Allow letters, digits, spaces and the punctuation used in book titles/names
+  // ("Vada Poche!", "Dr. Ramya", "Ramya & Sethu Ram", "Ainthinai: Five Landscapes")
+  const nameRegex = /^[A-Za-z0-9\s'.,&!?:()-]+$/;
 
   return name && name.trim() !== '' && nameRegex.test(name);
 }

@@ -1,6 +1,6 @@
 import { Navigate, useRoutes } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useDispatch, useSelector } from 'react-redux';
 // layouts
 import DashboardLayout from './layouts/dashboard';
@@ -39,12 +39,19 @@ export default function Router() {
       if (user) {
         const { uid } = user;
         getUserById(uid, (result) => {
-          if (result.success) {
+          // customers share this firebase project - only admins may use the dashboard
+          if (result.success && result.data?.role === 'admin') {
             dispatch(login(result.data));
-            setAuthChecked(true);
           } else {
-            errorNotification(result.err.message);
+            if (result.success) {
+              errorNotification('This account does not have admin access');
+            } else {
+              errorNotification(result.err.message);
+            }
+            dispatch(logout());
+            signOut(auth);
           }
+          setAuthChecked(true);
         });
       } else {
         dispatch(logout());
