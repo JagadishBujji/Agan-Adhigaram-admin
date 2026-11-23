@@ -1,18 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
-import { auth } from 'src/services/firebase';
+import { auth, FUNCTIONS_BASE_URL } from 'src/services/firebase';
 
 // @mui
 import { Link, Stack, IconButton, InputAdornment, TextField, Checkbox } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 // components
 import Iconify from '../../../components/iconify';
-import { RecaptchaVerifier, getAuth, signInWithEmailAndPassword, signInWithPhoneNumber, signOut } from 'firebase/auth';
+import {
+  RecaptchaVerifier,
+  getAuth,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signInWithPhoneNumber,
+  signOut,
+} from 'firebase/auth';
 import classes from './LoginForm.module.css';
 import { getUserById } from 'src/api/user';
 import { errorNotification, successNotification } from 'src/utils/notification';
 import { isValidEmail, isValidPassword } from 'src/utils/validation';
+import { requestPasswordReset } from 'src/utils/passwordReset';
 
 import {login} from 'src/store/userSlice';
 // ----------------------------------------------------------------------
@@ -27,6 +35,36 @@ export default function LoginForm() {
 
 
   const [showPassword, setShowPassword] = useState(false);
+  const [sendingReset, setSendingReset] = useState(false);
+
+  const forgotPasswordHandler = async (e) => {
+    e.preventDefault();
+    const email = creds.email.trim().toLowerCase();
+    if (!isValidEmail(email)) {
+      errorNotification('Enter your email address above, then click Forgot password?');
+      return;
+    }
+    if (sendingReset) return;
+    setSendingReset(true);
+    try {
+      await requestPasswordReset(email, {
+        baseUrl: FUNCTIONS_BASE_URL,
+        fallback: (address) => sendPasswordResetEmail(auth, address),
+      });
+      // same answer whether or not the account exists
+      successNotification(
+        `If an account exists for ${email}, a password reset link has been sent. Please check your inbox and spam folder.`
+      );
+    } catch (err) {
+      errorNotification(
+        err.code === 'auth/too-many-requests'
+          ? 'Too many requests. Please try again later.'
+          : 'Please enter a valid email address.'
+      );
+    } finally {
+      setSendingReset(false);
+    }
+  };
 
   const onChangeHandler = (e) => {
     const { name, value } = e.target;
@@ -102,8 +140,16 @@ export default function LoginForm() {
 
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
         {/* <Checkbox name="remember" label="Remember me" /> */}
-        <Link variant="subtitle2" underline="hover" sx={{ color: '#9F3239' }}>
-          Forgot password?
+        <Link
+          component="button"
+          type="button"
+          variant="subtitle2"
+          underline="hover"
+          sx={{ color: '#9F3239' }}
+          onClick={forgotPasswordHandler}
+          disabled={sendingReset}
+        >
+          {sendingReset ? 'Sending...' : 'Forgot password?'}
         </Link>
       </Stack>
 
