@@ -1,4 +1,4 @@
-import { arrayRemove, collection, deleteDoc, doc, getDocs, updateDoc } from 'firebase/firestore';
+import { arrayRemove, collection, deleteDoc, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
 import { deleteObject, ref } from 'firebase/storage';
 import { db, storage } from 'src/services/firebase';
 import { deleteBook } from 'src/utils/deleteBook';
@@ -6,6 +6,7 @@ import { deleteBook } from 'src/utils/deleteBook';
 // Deletes a book, its images and its "related books" links (see utils/deleteBook)
 const deleteBookWithImages = (book, books) =>
   deleteBook(book, books, {
+    isAvailableNow: async (bookId) => (await getDoc(doc(db, 'books', bookId))).data()?.is_available !== false,
     hideBook: (bookId) => updateDoc(doc(db, 'books', bookId), { is_available: false }),
     restoreBook: (bookId) => updateDoc(doc(db, 'books', bookId), { is_available: true }),
     loadOrders: async () => (await getDocs(collection(db, 'orders'))).docs.map((d) => d.data()),

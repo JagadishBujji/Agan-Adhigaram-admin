@@ -56,6 +56,7 @@ describe('deleteBook', () => {
     const log = [];
     return {
       log,
+      isAvailableNow: jest.fn(async () => true),
       hideBook: jest.fn(async (id) => log.push(`hide ${id}`)),
       restoreBook: jest.fn(async (id) => log.push(`restore ${id}`)),
       loadOrders: jest.fn(async () => {
@@ -90,7 +91,7 @@ describe('deleteBook', () => {
   });
 
   it('puts the book back on sale when a step fails before it is deleted', async () => {
-    for (const failing of ['loadOrders', 'removeRelated', 'deleteBookDoc']) {
+    for (const failing of ['hideBook', 'loadOrders', 'removeRelated', 'deleteBookDoc']) {
       const s = steps();
       s[failing].mockRejectedValueOnce(new Error('network'));
       await expect(deleteBook(testBook, books, s)).rejects.toThrow('network');
@@ -98,10 +99,12 @@ describe('deleteBook', () => {
     }
   });
 
-  it('leaves an already hidden book hidden when it is refused', async () => {
+  it('leaves a book hidden when it was hidden in the database, whatever the page showed', async () => {
     const s = steps();
+    s.isAvailableNow.mockResolvedValue(false); // another admin hid it after this page loaded
     s.loadOrders.mockResolvedValue([{ ordered_books: [{ id: 'b1' }] }]);
-    await deleteBook({ ...testBook, is_available: false }, books, s);
+    await deleteBook({ ...testBook, is_available: true }, books, s);
+    expect(s.hideBook).not.toHaveBeenCalled();
     expect(s.restoreBook).not.toHaveBeenCalled();
   });
 

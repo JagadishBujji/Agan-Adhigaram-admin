@@ -37,21 +37,23 @@ export function planBookDeletion(book, books, orders) {
   return { blocked: false, imagePaths, linkedFrom };
 }
 
-// steps: { hideBook(bookId), restoreBook(bookId), loadOrders, removeRelated(otherBookId, bookId),
-//          deleteBookDoc(bookId), deleteFile(path) }
+// steps: { isAvailableNow(bookId), hideBook(bookId), restoreBook(bookId), loadOrders,
+//          removeRelated(otherBookId, bookId), deleteBookDoc(bookId), deleteFile(path) }
 // Order matters: hide, check orders, links (a link to a missing book breaks a
 // page), the book, then the images (a leftover image file harms nothing).
 export async function deleteBook(
   book,
   books,
-  { hideBook, restoreBook, loadOrders, removeRelated, deleteBookDoc, deleteFile }
+  { isAvailableNow, hideBook, restoreBook, loadOrders, removeRelated, deleteBookDoc, deleteFile }
 ) {
-  const wasAvailable = book.is_available !== false;
-  if (wasAvailable) await hideBook(book.id);
+  // read from the database, not the page: another admin may have hidden it since
+  const wasAvailable = await isAvailableNow(book.id);
 
-  // until the book itself is deleted, any refusal or failure puts it back on sale
+  // until the book itself is deleted, any refusal or failure (the hide included)
+  // puts it back on sale - only if it was on sale before
   let plan;
   try {
+    if (wasAvailable) await hideBook(book.id);
     plan = planBookDeletion(book, books, await loadOrders());
     if (!plan.blocked) {
       for (const otherId of plan.linkedFrom) {
