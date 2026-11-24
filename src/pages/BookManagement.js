@@ -57,13 +57,14 @@ export default function BookManagement() {
   // };
 
   const getBooks = async () => {
+    let timer;
     try {
       // from the server only: offline, getDocs answers from the cache (maybe an empty
       // or old list); and give up after 15 s rather than wait without a message
       const snapshot = await Promise.race([
         getDocsFromServer(collection(db, 'books')),
         new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('timed out')), 15000);
+          timer = setTimeout(() => reject(new Error('timed out')), 15000);
         }),
       ]);
       setBooks(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
@@ -72,6 +73,8 @@ export default function BookManagement() {
       console.log('Error getting books:', error);
       setBooks([]);
       setListError(true);
+    } finally {
+      clearTimeout(timer);
     }
   };
 
