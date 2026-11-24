@@ -9,10 +9,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate } from 'react-router-dom';
 import { Typography } from '@mui/material';
 import CategoriesModal from '../Modal/BookModal';
-import { doc, deleteDoc } from 'firebase/firestore';
-import { db } from 'src/services/firebase';
 
-export default function MenuIcon({ editItem, item, type, setShowModal, setBookHandler }) {
+export default function MenuIcon({ editItem, item, type, setShowModal, setBookHandler, onDelete }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   // const [isEditable, setIsEditable] = React.useState(false);
   const open = Boolean(anchorEl);
@@ -27,11 +25,6 @@ export default function MenuIcon({ editItem, item, type, setShowModal, setBookHa
     setShowModal(true);
     setBookHandler(item); //callback function (child to parent props)
   };
-
-  // const handleDeleteBook = async () => {
-  //   await deleteDoc(doc(db, 'books', item.id));
-  //   // console.log("delete book",item.id)
-  // };
 
   const navigate = useNavigate();
   return (
@@ -80,19 +73,19 @@ export default function MenuIcon({ editItem, item, type, setShowModal, setBookHa
           <br />
         </MenuItem>
 
-        {/* <MenuItem
-          onClick={() => {
-            handleClose();
-            handleDeleteBook();
-          }}
-        >
-          <Typography sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-            <DeleteIcon sx={{ mr: 1 }} />
-            Delete
-          </Typography>
-
-          <br />
-        </MenuItem> */}
+        {onDelete && (
+          <MenuItem
+            onClick={() => {
+              handleClose();
+              onDelete(item);
+            }}
+          >
+            <Typography sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+              <DeleteIcon sx={{ mr: 1 }} />
+              Delete
+            </Typography>
+          </MenuItem>
+        )}
       </Menu>
     </div>
   );

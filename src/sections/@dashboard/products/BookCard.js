@@ -20,10 +20,11 @@ const StyledProductImg = styled('img')({
 // ----------------------------------------------------------------------
 
 BookCard.propTypes = {
+  onDelete: PropTypes.func,
   category: PropTypes.object,
 };
 
-export default function BookCard({ book, setShowModal, setBookHandler }) {
+export default function BookCard({ book, setShowModal, setBookHandler, onDelete }) {
   // const navigate = useNavigate();
   const { id, title, author, genre, discount_price, mrp_price, stock, title_tamil } = book;
   console.log('books stuff', book);
@@ -63,7 +64,13 @@ export default function BookCard({ book, setShowModal, setBookHandler }) {
               {title}({title_tamil})
             </Typography>
 
-            <MenuIcon item={book} type="category" setShowModal={setShowModal} setBookHandler={setBookHandler} />
+            <MenuIcon
+              item={book}
+              type="category"
+              setShowModal={setShowModal}
+              setBookHandler={setBookHandler}
+              onDelete={onDelete}
+            />
           </div>
 
           <Typography className={classes.namecard} variant="subtitle2" noWrap>
