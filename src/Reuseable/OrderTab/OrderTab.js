@@ -11,6 +11,7 @@ import OrderTable from './OrderTable';
 
 import { db } from '../../services/firebase';
 import { setOrders, selectOrders } from '../../store/orderSlice';
+import { errorNotification } from '../../utils/notification';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -58,14 +59,29 @@ export default function OrderTab() {
 
       const thirtyDaysAgoTimestamp = thirtyDaysAgo.getTime();
 
-      const q = query(
+      // orders still to be handled (booked / dispatched) are shown however old they are,
+      // e.g. a pre-order waiting for its release; finished ones only from the last 30 days.
+      // Filtered on status only (no composite index needed), unpaid attempts are dropped below.
+      const openOrdersQuery = query(collection(db, 'orders'), where('status', 'in', ['booked', 'dispatched']));
+      const recentOrdersQuery = query(
         collection(db, 'orders'),
         where('payment_status', '==', 'PAYMENT_SUCCESS'),
         where('ordered_timestamp', '>=', thirtyDaysAgoTimestamp),
         orderBy('ordered_timestamp', 'desc')
       );
 
-      const querySnapshot = await getDocs(q);
+      const [openSnapshot, recentSnapshot] = await Promise.all([
+        getDocs(openOrdersQuery),
+        getDocs(recentOrdersQuery),
+      ]);
+
+      const byId = new Map();
+      [...openSnapshot.docs, ...recentSnapshot.docs].forEach((doc) => {
+        if (doc.data().payment_status === 'PAYMENT_SUCCESS') {
+          byId.set(doc.id, { id: doc.id, ...doc.data() });
+        }
+      });
+      const allOrders = [...byId.values()].sort((a, b) => b.ordered_timestamp - a.ordered_timestamp);
 
       const orderList = {
         all: [],
@@ -75,12 +91,7 @@ export default function OrderTab() {
         cancelled: [],
       };
 
-      querySnapshot.forEach((doc) => {
-        const newData = {
-          id: doc.id,
-          ...doc.data(),
-        };
-
+      allOrders.forEach((newData) => {
         orderList.all.push(newData);
         if (newData.status === 'booked') {
           orderList.booked.push(newData);
@@ -93,11 +104,13 @@ export default function OrderTab() {
         }
       });
 
-      console.log('getData: ', orderList);
       dispatch(setOrders(orderList));
     };
 
-    getData();
+    getData().catch((e) => {
+      console.log('orders: ', e);
+      errorNotification('Could not load the orders, please refresh the page');
+    });
   }, []);
 
   const updateOrders = (id, updatedData) => {

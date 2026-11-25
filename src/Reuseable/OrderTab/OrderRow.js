@@ -21,7 +21,8 @@ import { db } from '../../services/firebase';
 import { successNotification, errorNotification } from '../../utils/notification';
 import LogisticsModal from '../Modal/LogisticsModal';
 import { addLogisticPartner } from '../../api/appMeta';
-import { formatLogistics } from '../../utils/logistics';
+import { formatLogistics, getLogisticName } from '../../utils/logistics';
+import { displayOrderId, getUnpaidLabel, isPaid } from '../../utils/order';
 import { formatAddress, isDeliveredToOtherPerson } from '../../utils/address';
 import { formatDate } from '../../utils/preorder';
 import classes from './OrderTable.module.css';
@@ -57,6 +58,8 @@ export default function OrderRow({
   const [open, setOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  // payment not done: shown in order history only, nothing to invoice or dispatch
+  const paid = isPaid(order);
 
   // Format currency
   function ccyFormat(num) {
@@ -79,7 +82,7 @@ export default function OrderRow({
   // Copy Order ID to clipboard
   const handleCopyOrderId = () => {
     navigator.clipboard
-      .writeText(order.id)
+      .writeText(displayOrderId(order))
       .then(() => {
         successNotification('Order ID copied to clipboard!');
       })
@@ -101,7 +104,7 @@ export default function OrderRow({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Invoice-${order.id}.pdf`;
+      a.download = `Invoice-${displayOrderId(order)}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -224,7 +227,9 @@ export default function OrderRow({
         {/* Order ID with Copy Button */}
         <TableCell component="th" scope="row">
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <span style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{order.id.slice(0, 8)}...</span>
+            <span style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+              {order.order_number || `${order.id.slice(0, 8)}...`}
+            </span>
             <Tooltip title="Copy Order ID">
               <IconButton size="small" onClick={handleCopyOrderId} sx={{ padding: '2px' }}>
                 <ContentCopyIcon sx={{ fontSize: 16, color: '#666' }} />
@@ -254,17 +259,28 @@ export default function OrderRow({
 
         {/* Status Chip */}
         <TableCell align="left">
-          <Chip
-            label={statusColors[order.status]?.label || order.status.toUpperCase()}
-            size="small"
-            sx={{
-              backgroundColor: statusColors[order.status]?.bg || '#888',
-              color: '#fff',
-              fontWeight: 600,
-              fontSize: '0.75rem',
-            }}
-          />
-          {order.has_preorder && order.status === 'booked' && (
+          {paid ? (
+            <Chip
+              label={statusColors[order.status]?.label || order.status.toUpperCase()}
+              size="small"
+              sx={{
+                backgroundColor: statusColors[order.status]?.bg || '#888',
+                color: '#fff',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+              }}
+            />
+          ) : (
+            <Tooltip title="The customer did not complete the payment. This is not an order: nothing to dispatch.">
+              <Chip
+                label={getUnpaidLabel(order)}
+                size="small"
+                variant="outlined"
+                sx={{ borderColor: '#9e9e9e', color: '#757575', fontWeight: 600, fontSize: '0.7rem' }}
+              />
+            </Tooltip>
+          )}
+          {paid && order.has_preorder && order.status === 'booked' && (
             <Chip
               label={
                 order.expected_delivery_date ? `PRE-ORDER - ${formatDate(order.expected_delivery_date)}` : 'PRE-ORDER'
@@ -305,7 +321,7 @@ export default function OrderRow({
 
                 <Stack direction="row" spacing={1} alignItems="center">
                   {/* Download Invoice Button */}
-                  {order.status !== 'cancelled' && (
+                  {paid && order.status !== 'cancelled' && (
                     <Tooltip title="Download Invoice">
                       <Button
                         variant="outlined"
@@ -325,7 +341,7 @@ export default function OrderRow({
                   )}
 
                   {/* Email Status Chip */}
-                  {order.status !== 'cancelled' && (
+                  {paid && order.status !== 'cancelled' && (
                     <Tooltip title={order.isConfirmationEmailSent ? 'Email sent successfully' : 'Email not sent'}>
                       <Chip
                         icon={order.isConfirmationEmailSent ? <CheckCircleIcon /> : <CancelIcon />}
@@ -343,7 +359,7 @@ export default function OrderRow({
                   )}
 
                   {/* Resend Email Button */}
-                  {order.status !== 'cancelled' && (
+                  {paid && order.status !== 'cancelled' && (
                     <Tooltip title={`Resend invoice to ${order.userDetail.email}`}>
                       <Button
                         variant="outlined"
@@ -363,7 +379,7 @@ export default function OrderRow({
                   )}
 
                   {/* Status Action Buttons */}
-                  {showStatusActions && order.status === 'booked' && (
+                  {showStatusActions && paid && order.status === 'booked' && (
                     <LogisticsModal
                       title="Logistics Details"
                       btnTitle="Dispatched"
@@ -372,7 +388,7 @@ export default function OrderRow({
                       }}
                     />
                   )}
-                  {showStatusActions && order.status === 'dispatched' && (
+                  {showStatusActions && paid && order.status === 'dispatched' && (
                     <Button sx={delivered} variant="contained" onClick={() => updateStatus(null, 'delivered')}>
                       Delivered
                     </Button>
@@ -403,13 +419,31 @@ export default function OrderRow({
                       </Typography>
                     )}
                     <Typography>
-                      <b className={classes.addres}>Logistics :</b>
-                      <span>{formatLogistics(order.logistics)}</span>
+                      <b className={classes.addres}>Courier :</b>
+                      <span>{getLogisticName(order.logistics) || 'NIL'}</span>
                     </Typography>
+                    {order.logistics?.number && (
+                      <Typography>
+                        <b className={classes.addres}>Tracking ID :</b>
+                        <span>{order.logistics.number}</span>
+                      </Typography>
+                    )}
                     <Typography>
                       <b className={classes.addres}>Total Quantity :</b>
                       <span>{order.total_qty}</span>
                     </Typography>
+                    {order.order_note && (
+                      <Typography>
+                        <b className={classes.addres}>Order Note :</b>
+                        <span>{order.order_note}</span>
+                      </Typography>
+                    )}
+                    {!paid && (
+                      <Typography sx={{ color: '#757575' }}>
+                        <b className={classes.addres}>Payment :</b>
+                        <span>{order.payment_status || 'not started'}</span>
+                      </Typography>
+                    )}
                   </Card>
                 </Stack>
 
