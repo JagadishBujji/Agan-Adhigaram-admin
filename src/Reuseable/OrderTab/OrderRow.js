@@ -21,7 +21,7 @@ import { db } from '../../services/firebase';
 import { successNotification, errorNotification } from '../../utils/notification';
 import LogisticsModal from '../Modal/LogisticsModal';
 import { addLogisticPartner } from '../../api/appMeta';
-import { formatLogistics, getLogisticName } from '../../utils/logistics';
+import { getLogisticName } from '../../utils/logistics';
 import { displayOrderId, getUnpaidLabel, isPaid } from '../../utils/order';
 import { formatAddress, isDeliveredToOtherPerson } from '../../utils/address';
 import { formatDate } from '../../utils/preorder';
@@ -88,6 +88,18 @@ export default function OrderRow({
       })
       .catch(() => {
         errorNotification('Failed to copy Order ID');
+      });
+  };
+
+  // PhonePe knows the payment only by the long id (refunds, disputes)
+  const handleCopyPaymentId = () => {
+    navigator.clipboard
+      .writeText(order.id)
+      .then(() => {
+        successNotification('Payment ID copied to clipboard!');
+      })
+      .catch(() => {
+        errorNotification('Failed to copy Payment ID');
       });
   };
 
@@ -251,7 +263,16 @@ export default function OrderRow({
         <TableCell align="left">{getDisplayTime()}</TableCell>
 
         {/* Extra Columns for OrderHistory */}
-        {showExtraColumns && <TableCell align="left">{formatLogistics(order.logistics)}</TableCell>}
+        {showExtraColumns && (
+          <TableCell align="left">
+            {getLogisticName(order.logistics) || 'NIL'}
+            {order.logistics?.number && (
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                Tracking ID: {order.logistics.number}
+              </Typography>
+            )}
+          </TableCell>
+        )}
         {showExtraColumns && <TableCell align="left">{order.total_qty}</TableCell>}
 
         {/* Total Price */}
@@ -399,6 +420,20 @@ export default function OrderRow({
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" marginBottom="10px">
                   <Card sx={{ padding: '10px', mb: 1, width: '100%' }}>
+                    <Typography>
+                      <b className={classes.addres}>Payment ID (PhonePe) :</b>
+                      <span style={{ fontFamily: 'monospace' }}>{order.id}</span>
+                      <Tooltip title="Copy Payment ID (for PhonePe refunds / disputes)">
+                        <IconButton
+                          size="small"
+                          onClick={handleCopyPaymentId}
+                          sx={{ padding: '2px', ml: 0.5 }}
+                          aria-label="copy payment id"
+                        >
+                          <ContentCopyIcon sx={{ fontSize: 14, color: '#666' }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Typography>
                     <Typography>
                       <b className={classes.addres}>Deliver To :</b>
                       <span>
