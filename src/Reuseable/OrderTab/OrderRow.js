@@ -18,6 +18,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { Button, Card, Stack, Chip, Tooltip, CircularProgress } from '@mui/material';
 import { db } from '../../services/firebase';
+import { adminFetch, errorMessage } from '../../api/functions';
 import { successNotification, errorNotification } from '../../utils/notification';
 import LogisticsModal from '../Modal/LogisticsModal';
 import { addLogisticPartner } from '../../api/appMeta';
@@ -27,8 +28,6 @@ import { formatAddress, isDeliveredToOtherPerson } from '../../utils/address';
 import { formatDate } from '../../utils/preorder';
 import classes from './OrderTable.module.css';
 
-// API base URL for Cloud Functions
-const API_BASE_URL = 'https://us-central1-agan-adhigaram.cloudfunctions.net';
 
 // Status color mapping
 const statusColors = {
@@ -107,10 +106,9 @@ export default function OrderRow({
   const handleDownloadInvoice = async () => {
     setIsDownloading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/downloadInvoice?orderId=${order.id}`);
+      const response = await adminFetch(`/downloadInvoice?orderId=${order.id}`);
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to download invoice');
+        throw new Error(await errorMessage(response, 'Failed to download invoice'));
       }
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -137,15 +135,15 @@ export default function OrderRow({
 
     setIsResending(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/resendInvoice`, {
+      const response = await adminFetch('/resendInvoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId: order.id }),
       });
-      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to resend invoice');
+        throw new Error(await errorMessage(response, 'Failed to resend invoice'));
       }
+      const data = await response.json();
       successNotification(`Invoice sent to ${data.sentTo}`);
       // Update local order data to reflect the resend
       if (updateOrders) {

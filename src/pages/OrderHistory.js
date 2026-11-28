@@ -19,6 +19,9 @@ import {
   TableHead,
   FormControlLabel,
   Switch,
+  Button,
+  MenuItem,
+  TextField,
 } from '@mui/material';
 // components
 import Scrollbar from '../components/scrollbar';
@@ -30,6 +33,8 @@ import { db } from '../services/firebase';
 import { getLogisticName } from '../utils/logistics';
 import { displayOrderId, isPaid } from '../utils/order';
 import { formatAddress } from '../utils/address';
+import { adminFetch, errorMessage } from '../api/functions';
+import { errorNotification } from '../utils/notification';
 
 // ----------------------------------------------------------------------
 
@@ -86,6 +91,26 @@ export default function OrderHistroy() {
   const [selectedDate, setSelectedDate] = useState(null);
   // payments the customer did not complete are saved as "booked" too: hidden unless asked for
   const [showUnpaid, setShowUnpaid] = useState(false);
+  // yearly sales report (Excel), paid orders only
+  const thisYear = new Date().getFullYear();
+  const [reportYear, setReportYear] = useState(thisYear);
+  const [isReportLoading, setIsReportLoading] = useState(false);
+  const reportYears = Array.from({ length: thisYear - 2023 + 1 }, (_, i) => thisYear - i);
+
+  const downloadSalesReport = async () => {
+    setIsReportLoading(true);
+    try {
+      const response = await adminFetch(`/salesReport/export-excel?year=${reportYear}`);
+      if (!response.ok) {
+        throw new Error(await errorMessage(response, 'Could not download the sales report'));
+      }
+      saveAs(await response.blob(), `sales-report-${reportYear}.xlsx`);
+    } catch (e) {
+      errorNotification(e.message);
+    } finally {
+      setIsReportLoading(false);
+    }
+  };
 
   useEffect(() => {
     const currentDate = new Date();
@@ -252,6 +277,24 @@ export default function OrderHistroy() {
           <Typography variant="h4" gutterBottom>
             Orders History
           </Typography>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <TextField
+              select
+              size="small"
+              label="Year"
+              value={reportYear}
+              onChange={(e) => setReportYear(Number(e.target.value))}
+            >
+              {reportYears.map((y) => (
+                <MenuItem key={y} value={y}>
+                  {y}
+                </MenuItem>
+              ))}
+            </TextField>
+            <Button variant="outlined" onClick={downloadSalesReport} disabled={isReportLoading}>
+              {isReportLoading ? 'Preparing...' : 'Download sales report'}
+            </Button>
+          </Stack>
         </Stack>
 
         <Card>
