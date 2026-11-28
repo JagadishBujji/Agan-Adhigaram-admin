@@ -38,6 +38,11 @@ const navConfig = [
   //   icon: icon('pincode'),
   // },
   {
+    title: 'Newsletter',
+    path: '/dashboard/newsletter',
+    icon: icon('ic_user'),
+  },
+  {
     title: 'Settings',
     path: '/dashboard/settings',
     icon: icon('setting'),

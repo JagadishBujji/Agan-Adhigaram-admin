@@ -85,16 +85,16 @@ export default function UserListToolbar({
           }
         />
       )} */}
-      {/* <StyledSearch
+      <StyledSearch
         value={filterName}
         onChange={onFilterName}
-        placeholder="Search user..."
+        placeholder="Search order no, name or phone"
         startAdornment={
           <InputAdornment position="start">
             <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled', width: 20, height: 20 }} />
           </InputAdornment>
         }
-      /> */}
+      />
 
       <DateSelect orderType={orderType} setOrderType={setOrderType} />
       <ResponsiveDatePicker selectedDate={selectedDate} setSelectedDate={setSelectedDate} />

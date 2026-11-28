@@ -17,6 +17,11 @@ import {
   TableContainer,
   TablePagination,
   TableHead,
+  FormControlLabel,
+  Switch,
+  Button,
+  MenuItem,
+  TextField,
 } from '@mui/material';
 // components
 import Scrollbar from '../components/scrollbar';
@@ -25,8 +30,11 @@ import { UserListToolbar } from '../sections/@dashboard/user';
 import OrderRow from 'src/Reuseable/OrderTab/OrderRow';
 import { collection, getDocs, query, where, orderBy as OB } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import { formatLogistics } from '../utils/logistics';
+import { getLogisticName } from '../utils/logistics';
+import { displayOrderId, isPaid } from '../utils/order';
 import { formatAddress } from '../utils/address';
+import { adminFetch, errorMessage } from '../api/functions';
+import { errorNotification } from '../utils/notification';
 
 // ----------------------------------------------------------------------
 
@@ -54,7 +62,15 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    // customer name, phone, short order number or the long id
+    const text = query.toLowerCase();
+    return filter(array, (o) =>
+      [o.userDetail?.name, o.userDetail?.phone, o.order_number, o.id].some((v) =>
+        String(v || '')
+          .toLowerCase()
+          .includes(text)
+      )
+    );
   }
   return stabilizedThis.map((el) => el[0]);
 }
@@ -73,6 +89,28 @@ export default function OrderHistroy() {
   const [orders, setOrders] = useState([]);
   const [orderType, setOrderType] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
+  // payments the customer did not complete are saved as "booked" too: hidden unless asked for
+  const [showUnpaid, setShowUnpaid] = useState(false);
+  // yearly sales report (Excel), paid orders only
+  const thisYear = new Date().getFullYear();
+  const [reportYear, setReportYear] = useState(thisYear);
+  const [isReportLoading, setIsReportLoading] = useState(false);
+  const reportYears = Array.from({ length: thisYear - 2023 + 1 }, (_, i) => thisYear - i);
+
+  const downloadSalesReport = async () => {
+    setIsReportLoading(true);
+    try {
+      const response = await adminFetch(`/salesReport/export-excel?year=${reportYear}`);
+      if (!response.ok) {
+        throw new Error(await errorMessage(response, 'Could not download the sales report'));
+      }
+      saveAs(await response.blob(), `sales-report-${reportYear}.xlsx`);
+    } catch (e) {
+      errorNotification(e.message);
+    } finally {
+      setIsReportLoading(false);
+    }
+  };
 
   useEffect(() => {
     const currentDate = new Date();
@@ -158,8 +196,8 @@ export default function OrderHistroy() {
   };
 
   const exportOrders = () => {
-    const formattedData = orders.map((order) => ({
-      'Order Id': order.id,
+    const formattedData = visibleOrders.map((order) => ({
+      'Order Id': displayOrderId(order),
       Name: order.userDetail.name,
       Phone: order.userDetail.phone,
       Address: formatAddress(order.userDetail),
@@ -171,10 +209,12 @@ export default function OrderHistroy() {
         minute: '2-digit',
         hour12: true,
       }),
-      Logistics: formatLogistics(order.logistics),
+      Courier: getLogisticName(order.logistics),
+      'Tracking ID': order.logistics?.number || '',
       Quantity: order.total_qty,
       'Total Price(+ delivery fee)': `Rs. ${order.total_price}`,
-      Status: order.status,
+      Status: isPaid(order) ? order.status : 'payment not completed',
+      'Order Note': order.order_note || '',
       'Ordered Products': order.ordered_books
         .map((book) => `${book.title} x ${book.qty} - Rs.${book.total_price}`)
         .join(' | '),
@@ -219,9 +259,12 @@ export default function OrderHistroy() {
     saveAs(fileData, `${formattedDate}-orders.xlsx`);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - orders.length) : 0;
+  const visibleOrders = showUnpaid ? orders : orders.filter(isPaid);
+  const unpaidCount = orders.length - orders.filter(isPaid).length;
 
-  const filteredUsers = applySortFilter(orders, getComparator(order, orderBy), filterName);
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - visibleOrders.length) : 0;
+
+  const filteredUsers = applySortFilter(visibleOrders, getComparator(order, orderBy), filterName);
 
   return (
     <>
@@ -234,6 +277,24 @@ export default function OrderHistroy() {
           <Typography variant="h4" gutterBottom>
             Orders History
           </Typography>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <TextField
+              select
+              size="small"
+              label="Year"
+              value={reportYear}
+              onChange={(e) => setReportYear(Number(e.target.value))}
+            >
+              {reportYears.map((y) => (
+                <MenuItem key={y} value={y}>
+                  {y}
+                </MenuItem>
+              ))}
+            </TextField>
+            <Button variant="outlined" onClick={downloadSalesReport} disabled={isReportLoading}>
+              {isReportLoading ? 'Preparing...' : 'Download sales report'}
+            </Button>
+          </Stack>
         </Stack>
 
         <Card>
@@ -247,6 +308,21 @@ export default function OrderHistroy() {
             setSelectedDate={onDataChanged}
             exportOrders={exportOrders}
           />
+
+          <Stack direction="row" alignItems="center" sx={{ px: 3, pb: 1 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showUnpaid}
+                  onChange={(e) => {
+                    setPage(0);
+                    setShowUnpaid(e.target.checked);
+                  }}
+                />
+              }
+              label={`Show payments not completed (${unpaidCount})`}
+            />
+          </Stack>
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
@@ -323,7 +399,7 @@ export default function OrderHistroy() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={orders.length}
+            count={visibleOrders.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}

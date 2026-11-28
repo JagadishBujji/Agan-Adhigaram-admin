@@ -19,6 +19,7 @@ const DashboardAppPage = lazy(() => import('./pages/DashboardAppPage'));
 const OrderHistory = lazy(() => import('./pages/OrderHistory'));
 const BookManagement = lazy(() => import('./pages/BookManagement'));
 const StoreSettings = lazy(() => import('./pages/StoreSettings'));
+const NewsletterSubscribers = lazy(() => import('./pages/NewsletterSubscribers'));
 
 // Loading component for Suspense
 const PageLoader = () => (
@@ -74,6 +75,7 @@ export default function Router() {
         { path: 'orders', element: <Navigate to="/dashboard/order-histroy" /> },
         { path: 'book-management', element: <Suspense fallback={<PageLoader />}><BookManagement /></Suspense> },
         { path: 'settings', element: <Suspense fallback={<PageLoader />}><StoreSettings /></Suspense> },
+        { path: 'newsletter', element: <Suspense fallback={<PageLoader />}><NewsletterSubscribers /></Suspense> },
       ],
     },
     {
